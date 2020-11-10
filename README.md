@@ -10,25 +10,28 @@ This is a repository containing my data analytics projects for academic and self
 
 * **Data visualization and ML**
 
+  * [**Pet food orders**](https://github.com/leeolney/data-portfolio/tree/main/strategy_games): exploratory analysis focused on finding key features that explain pet treats purchases, wet food purchases and follow up wet food purchases. 
+    * Feature extraction, visualization, clustering and model-based feature importances [(R Notebook)](https://rpubs.com/leeolney/petfoodorders)
+    
   * [**Hotel booking cancellations**](https://github.com/leeolney/data-portfolio/tree/main/hotel_booking): analysis of hotel booking cancellations using the hotel booking demand dataset, focusing on identifying the key variables for predicting hotel booking cancellations.
-    * [Visualization and ML with logistic regression, decision tree, random forest, XGBoost (Jupyter Notebook)](https://github.com/leeolney/data-portfolio/blob/main/hotel_booking/hotel_booking_p.ipynb)
-    * [Visualization (R Notebook)](https://rpubs.com/leeolney/hbc1) 
-    * [ML with logistic regression, decision tree, random forest (R Notebook)](https://rpubs.com/leeolney/673006)
+    * Visualization and ML with logistic regression, decision tree, random forest, XGBoost [(Jupyter Notebook)](https://github.com/leeolney/data-portfolio/blob/main/hotel_booking/hotel_booking_p.ipynb)
+    * Visualization [(R Notebook)](https://rpubs.com/leeolney/hbc1) 
+    * ML with logistic regression, decision tree, random forest [(R Notebook)](https://rpubs.com/leeolney/673006)
 
   * [**Detecting fraudulent job posts**](https://github.com/leeolney/data-portfolio/tree/main/fraudulent_jobs): identifying important features for predicting fraudulent job posts.
-    * [ML with logistic regression, decision tree and random forest (R Notebook)](https://rpubs.com/leeolney/fraudulentjobposts) 
-    * [Visualization (.twbx)](https://public.tableau.com/profile/lee.olney#!/vizhome/M00648928_1/Dashboard1) 
+    * ML with logistic regression, decision tree and random forest [(R Notebook)](https://rpubs.com/leeolney/fraudulentjobposts) 
+    * Visualization [(.twbx)](https://public.tableau.com/profile/lee.olney#!/vizhome/M00648928_1/Dashboard1) 
     
   * [**Onshore pipeline incidents in the US from 2010 to 2017**](https://github.com/leeolney/data-portfolio/tree/main/onshore_pipeline):  focused on predicting whether an onshore pipeline accident in the US will incur a cost of 100,000 USD, and investigating the relationship between net loss barrels, all costs and liquid recovery barrels. 
-    * [ML with with logistic regression, decision tree, hierarchical clustering, k-means clustering (.R)](https://github.com/leeolney/data-portfolio/blob/main/onshore_pipeline/pipeline.R)
-    * [Visualisation (.twbx)](https://public.tableau.com/profile/lee.olney#!/vizhome/onshore_pipeline_accidents/Dashboard1)
+    * ML with with logistic regression, decision tree, hierarchical clustering, k-means clustering [(.R)](https://github.com/leeolney/data-portfolio/blob/main/onshore_pipeline/pipeline.R)
+    * Visualisation [(.twbx)](https://public.tableau.com/profile/lee.olney#!/vizhome/onshore_pipeline_accidents/Dashboard1)
+    * [Project report (.docx](https://github.com/leeolney/data_portfolio/blob/main/onshore_pipeline/report_pipeline.docx)
 
   * [**Mobile strategy games on the Apple App Store**](https://github.com/leeolney/data-portfolio/tree/main/strategy_games): focused on predicting if a game will receive a user rating score of 4.0 and above, and investigating the relationship between user rating count, price and size for the purpose of guiding game design decisions. 
-    * [ML with logistic regression, decision tree, hierarchical clustering, k-means clustering (.R)](https://github.com/leeolney/data-portfolio/blob/main/mobile_strategy_games/mobile_strategy_games.R) 
-    * [Visualization (.twbx)](https://public.tableau.com/profile/lee.olney#!/vizhome/CW1_games/board-1)
-    
-  * [**Pet food orders**](https://github.com/leeolney/data-portfolio/tree/main/strategy_games): exploratory analysis focused on finding key features that explain pet treats purchases, wet food purchases and follow up wet food purchases. 
-    * [Feature extraction, visualization, clustering and model-based feature importances (R Notebook)](https://rpubs.com/leeolney/petfoodorders)   
+    * ML with logistic regression, decision tree, hierarchical clustering, k-means clustering [(.R)](https://github.com/leeolney/data-portfolio/blob/main/mobile_strategy_games/mobile_strategy_games.R)
+    * Visualization [(.twbx)](https://public.tableau.com/profile/lee.olney#!/vizhome/CW1_games/board-1)
+    * [Project report (.docx](https://github.com/leeolney/data_portfolio/blob/main/mobile_strategy_games/report_mbg.docx)
+   
 
 * **Data visualization** 
   * **R**
@@ -43,6 +46,7 @@ This is a repository containing my data analytics projects for academic and self
       * [Rig count - International](https://public.tableau.com/profile/lee.olney#!/vizhome/RigCount-International/Dashboard) looking at on drilling activities outside of North America 
       * [Hotel bookings dashboard](https://public.tableau.com/profile/lee.olney#!/vizhome/Hotelbookings_16021031357320/Board1): additional visualizations for hotel booking cancellation project. 
       * [Survey constructs dashboard](https://public.tableau.com/profile/lee.olney#!/vizhome/M00648928_2/D3): visualizing primary data collected for hybrid machine-crowd project
+      
 
 * **Micro projects**
   * [Product review sentiment classification (.R)](https://github.com/leeolney/data-portfolio/blob/main/micro_projects/m2_product_reviews.R): applying basic text preprocessing methods and sentiment analysis to classify dog products review.
