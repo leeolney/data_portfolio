@@ -1,0 +1,143 @@
+---
+title: "Hotel booking cancellations - Part 2"
+output:
+  html_document:
+    df_print: paged
+---
+
+## Dataset
+[Hotel Booking Demand](https://www.kaggle.com/jessemostipak/hotel-booking-demand) 
+
+## Research question
+* What are the key variables for predicting hotel booking cancellations? 
+    + logistic regression, decision tree, random forest
+
+## Load libraries
+```{r, message = FALSE, warning = FALSE}
+library(tidyverse)
+library(Hmisc)
+library(corrplot)
+library(pscl)
+library(rpart)
+library(rpart.plot)
+library(rattle)
+library(randomForest)
+library(caret)
+library(pROC)
+library(xgboost)
+```
+
+## Import data from part 1
+```{r}
+dfm=read.csv("df3a.csv",header=TRUE)
+```
+
+## Summary
+```{r}
+dim(dfm)
+dfm = dfm %>% mutate_at (vars(is_canceled,arrival_date_year,is_repeated_guest, reserved_room_type,assigned_room_type, room_type_change, is_family, is_waitlisted, agent,company, has_pcancel, has_pbnc, has_bchanges, has_srequests, from_company, from_agent, req_parking), list(factor))
+```
+
+## Check correlation
+```{r}
+dfnum = dplyr:: select_if(dfm, is.numeric)
+dfnum = data.frame(lapply(dfnum, function(x) as.numeric(as.character(x))))
+res=cor(dfnum)
+corrplot(res, method="color", type="upper", tl.col="black" )
+```
+
+## Select variables 
+```{r}
+fs1 = dfm %>% select(is_canceled, hotel, lead_time, arrival_date_month, arrival_date_day_of_month, stays_in_weekend_nights, stays_in_week_nights, meal, country, market_segment, distribution_channel, is_repeated_guest, previous_cancellations, previous_bookings_not_canceled, reserved_room_type, booking_changes, deposit_type, days_in_waiting_list, customer_type, adr, required_car_parking_spaces, total_of_special_requests, is_family, room_type_change, from_company, from_agent)
+dim(fs1)
+str(fs1)
+```
+
+## Spilt data
+```{r}
+dim(fs1)
+set.seed(123)
+y2=sample(1:103938,83150)
+xtrain=fs1[y2,]
+xtest=fs1[-y2,]
+Hmisc::describe(dfm$is_canceled)
+Hmisc::describe(xtrain$is_canceled)
+Hmisc::describe(xtest$is_canceled)
+```
+
+## Random forest 
+```{r}
+set.seed(4543)
+rf <- randomForest(is_canceled ~ ., data=xtrain)
+importance(rf)
+varUsed(rf, by.tree=FALSE, count =TRUE)
+varImpPlot(rf)
+```
+
+**Prediction**
+```{r}
+rfp = predict(rf, xtest)
+cmrf = confusionMatrix(rfp, xtest$is_canceled)
+cmrf
+xtest$rfp= rfp
+roc_rf= roc(response= xtest$is_canceled, predictor = factor(xtest$rfp, ordered=TRUE), plot=TRUE, print.auc=TRUE)
+round(cmrf$byClass["F1"], 4)
+```
+
+## Decision tree
+```{r}
+mt = rpart(is_canceled ~., data = xtrain, method = "class")
+fancyRpartPlot(mt)
+printcp(mt)
+mt$variable.importance
+```
+
+**Variable importance viz**
+```{r}
+d1 = data.frame(imp = mt$variable.importance)
+d2 <- d1 %>% 
+  tibble::rownames_to_column() %>% 
+  dplyr::rename("variable" = rowname) %>% 
+  dplyr::arrange(imp) %>%
+  dplyr::mutate(variable = forcats::fct_inorder(variable))
+ggplot2::ggplot(d2) +
+  geom_col(aes(x = variable, y = imp),
+           col = "black", show.legend = F) +
+  coord_flip() +
+  scale_fill_grey() +
+  theme_minimal()
+```
+
+**Prediction**
+```{r}
+tree.p = predict(mt, xtest, type = "class")
+cmdt = confusionMatrix(tree.p, xtest$is_canceled)
+cmdt
+xtest$tp1= tree.p
+roc_t1= roc(response= xtest$is_canceled, predictor = factor(xtest$tp1, ordered=TRUE), plot=TRUE, print.auc=TRUE)
+round(cmdt$byClass["F1"], 4)
+```
+
+## Logistic regression 
+```{r, warning = FALSE}
+model1= glm(is_canceled ~., data=xtrain, family = "binomial")
+summary(model1) 
+pR2(model1)  
+anova(model1, test= "Chisq")
+```
+
+**Prediction**
+```{r}
+prob=predict(model1,xtest,type="response")
+prob1=rep(0,20788)
+prob1[prob>0.5]=1
+cmlr= confusionMatrix(as.factor(prob1),xtest$is_canceled) 
+cmlr
+roc_lr1 = roc(xtest$is_canceled, prob, plot=TRUE, print.auc=TRUE)
+round(cmlr$byClass["F1"], 4)
+```
+
+
+
+
+

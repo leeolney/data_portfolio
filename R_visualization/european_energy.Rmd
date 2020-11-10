@@ -1,0 +1,324 @@
+---
+title: "European Energy Viz"
+output:
+  html_document:
+    df_print: paged
+---
+
+### Data source
+#### [European Energy](https://github.com/rfordatascience/tidytuesday/blob/master/data/2020/2020-08-04/readme.md)
+
+### Load library and set theme
+```{r, message = FALSE, warning = FALSE}
+#load packages
+library(tidyverse)
+library(readr)
+library(skimr)
+library(ggpubr)
+library(viridis)
+#set theme
+theme_set(theme_light())
+```
+
+### Import data
+```{r, message = FALSE, warning = FALSE}
+#get data
+energy_types <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2020/2020-08-04/energy_types.csv')
+country_totals <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2020/2020-08-04/country_totals.csv')
+```
+
+```{r, echo=FALSE}
+#examine 
+dim(energy_types)
+colnames(energy_types)
+dim(country_totals)
+colnames(country_totals)
+```
+
+### Percent of renewable in 2018
+```{r, message = FALSE, warning = FALSE}
+#get total energy in 2018
+total_energy<-country_totals%>%
+  select(-`2017`, -`2016`, -level)%>%
+  pivot_wider(names_from=type, values_from=`2018`)%>%
+  janitor::clean_names()%>%
+  mutate(total_energy_use = total_net_production+imports-exports-energy_absorbed_by_pumping)%>%
+  select(country, total_energy_use)
+
+#get percent of renewable
+percent_renewable<-energy_types%>%
+  select(-`2016`, -`2017`, -`level`)%>%
+  pivot_wider(names_from=type, values_from=`2018`)%>%
+  janitor::clean_names()%>%
+  mutate(
+    renewable=hydro+wind+solar+geothermal+pumped_hydro_power, 
+    non_renewable = conventional_thermal+nuclear+other,
+    percent_renewable = renewable/(renewable+non_renewable)
+    )%>%
+  left_join(total_energy)%>%
+  mutate(
+    country_name=ifelse(is.na(country_name), "United Kingdom", country_name),
+    other_percent_renewable = renewable/total_energy_use)
+
+#percent renewable summary
+summary(percent_renewable$percent_renewable)
+```
+
+### Visualization
+#### Percentage of renewable energy - lollipop chart
+```{r}
+ggplot(percent_renewable, aes(x=country_name, y=percent_renewable)) +
+  geom_segment( aes(x=reorder(country_name,percent_renewable), xend=country_name, y=0, yend=percent_renewable), color="grey") +
+  geom_point( color="#69b3a2", size=1) +
+  theme_light() +
+  theme(
+    panel.grid.major.x = element_blank(),
+    panel.border = element_blank(),
+    axis.ticks.x = element_blank(),
+    axis.ticks.y = element_blank(),
+    panel.grid.major.y = element_blank(),
+    panel.grid.minor.x = element_blank()
+  ) +
+  xlab("") +
+  ylab("") + coord_flip() + 
+  labs(title="Percentage of renewable energy", subtitle="European Energy 2018") + 
+  scale_y_continuous(labels = scales::percent)
+```
+
+#### Percentage of renewable energy - circular bar
+```{r}
+colnames(percent_renewable)
+```
+```{r}
+#order data
+tmp <- percent_renewable %>% filter(!is.na(percent_renewable)) %>% arrange(desc(percent_renewable)) %>% mutate(country=factor(country,country)) %>% mutate(across(percent_renewable, round, 2))
+empty_bar=1
+
+#add lines to temporary set
+to_add = matrix(NA, empty_bar, ncol(tmp))
+colnames(to_add) = colnames(tmp)
+tmp=rbind(tmp, to_add)
+tmp$id=seq(1, nrow(tmp))
+
+#get names and y pos of label
+label_tmp=tmp
+number_of_bar=nrow(label_tmp)
+angle= 90 - 360 * (label_tmp$id-0.5) /number_of_bar     
+label_tmp$hjust<-ifelse( angle < -90, 1, 0)
+label_tmp$angle<-ifelse(angle < -90, angle+180, angle)
+label_tmp$country <- gsub("Bosnia & Herzegovina", "B&H", label_tmp$country)
+label_tmp$country <- paste(label_tmp$country, " (", label_tmp$percent_renewable,")", sep="")
+
+#plot 
+ggplot(tmp, aes(x=as.factor(id), y=percent_renewable, fill = percent_renewable)) +      
+  geom_bar(aes(x=as.factor(id), y=percent_renewable, fill = percent_renewable),stat = "identity") +
+  ylim(-1,1) +
+  theme_minimal() +
+  theme(
+    axis.text = element_blank(),
+    axis.title = element_blank(),
+    panel.grid = element_blank(),
+    plot.margin = unit(rep(-0.2,4), "cm") 
+  ) +
+  coord_polar(start = 0) + 
+  geom_text(data=label_tmp, aes(x=id, y=percent_renewable, label=country ), color="black", fontface="bold",alpha=0.6, size=2.5, angle= label_tmp$angle, hjust=label_tmp$hjust, inherit.aes = FALSE ) +
+  geom_text( aes(x=1, y=1, label=""), color="black", inherit.aes = FALSE) + scale_fill_viridis() + 
+  labs(fill="Proportion of renewable energy")
+```
+
+#### Conventional thermal energy production in 2018
+```{r}
+percent_renewable %>%
+  filter(!is.na(conventional_thermal)) %>%
+  arrange(conventional_thermal) %>%
+  mutate(country_name=factor(country_name, country_name)) %>%
+  ggplot( aes(x=country_name, y=conventional_thermal) ) +
+    geom_segment( aes(x=country_name ,xend=country_name, y=0, yend=conventional_thermal), color="grey") +
+    geom_point(size=1.5, color="#dda15e") +
+    coord_flip() +
+    theme_light() +
+    theme(
+    panel.grid.major.x = element_blank(),
+    panel.border = element_blank(),
+    axis.ticks.x = element_blank(),
+    axis.ticks.y = element_blank(),
+    panel.grid.major.y = element_blank(),
+    panel.grid.minor.x = element_blank()
+  ) +
+  xlab("") +
+  ylab("") +  
+  labs(title="Conventional thermal energy production in GWh", subtitle="European Energy 2018")
+```
+
+### Five largest producers by clean energy type
+```{r}
+#get top 5 country names and values by energy type
+dfe = energy_types
+colnames(dfe)[7] <- "y2018"
+dfe2 = dfe %>% 
+  select(-`2016`, -`2017`, -`level`, -'country') %>%  
+  mutate(
+    country_name=ifelse(is.na(country_name), "United Kingdom", country_name)) %>%
+  janitor::clean_names() %>% 
+  arrange(desc(y2018)) %>% 
+  group_by(type) %>% 
+  slice(1:5) 
+dfe2
+```
+
+#### Individual plots 
+```{r}
+#nuclear energy
+vnuclear = 
+  percent_renewable %>%
+  filter(!is.na(nuclear)) %>%
+  arrange(nuclear) %>%
+  mutate(country_name=factor(country_name, country_name)) %>% top_n(5, nuclear) %>% slice_max(nuclear, n=5) %>%
+  ggplot( aes(x=country_name, y=nuclear) ) +
+    geom_segment( aes(x=country_name ,xend=country_name, y=0, yend=nuclear), color="#294c60") +
+    geom_point(size=2, color="#294c60") +
+    coord_flip() +
+    theme_light() +
+    theme(
+    panel.grid.major.x = element_blank(),
+    panel.border = element_blank(),
+    axis.ticks.x = element_blank(),
+    axis.ticks.y = element_blank(),
+    panel.grid.major.y = element_blank(),
+    panel.grid.minor.x = element_blank()
+  ) +
+  xlab("") +
+  ylab("") +  
+  labs(title="Nuclear")
+```
+
+```{r}
+#hydrothermal
+vhydro = percent_renewable %>%
+  filter(!is.na(hydro)) %>%
+  arrange(hydro) %>%
+  mutate(country_name=factor(country_name, country_name)) %>% top_n(5, hydro) %>% slice_max(nuclear, n=5) %>%
+  ggplot( aes(x=country_name, y=hydro) ) +
+    geom_segment( aes(x=country_name ,xend=country_name, y=0, yend=hydro), color="#7e96a7") +
+    geom_point(size=2, color="#7e96a7") +
+    coord_flip() +
+    theme_light() +
+    theme(
+    panel.grid.major.x = element_blank(),
+    panel.border = element_blank(),
+    axis.ticks.x = element_blank(),
+    axis.ticks.y = element_blank(),
+    panel.grid.major.y = element_blank(),
+    panel.grid.minor.x = element_blank()
+  ) +
+  xlab("") +
+  ylab("") +  
+  labs(title="Hydrothermal")
+```
+
+```{r}
+#wind
+vwind = percent_renewable %>%
+  filter(!is.na(wind)) %>%
+  arrange(wind) %>%
+  mutate(country_name=factor(country_name, country_name)) %>% top_n(5, wind) %>% slice_max(wind, n=5) %>%
+  ggplot( aes(x=country_name, y=wind) ) +
+    geom_segment( aes(x=country_name ,xend=country_name, y=0, yend=wind), color="#7e96a7") +
+    geom_point(size=2, color="#7e96a7") +
+    coord_flip() +
+    theme_light() +
+    theme(
+    panel.grid.major.x = element_blank(),
+    panel.border = element_blank(),
+    axis.ticks.x = element_blank(),
+    axis.ticks.y = element_blank(),
+    panel.grid.major.y = element_blank(),
+    panel.grid.minor.x = element_blank()
+  ) +
+  xlab("") +
+  ylab("") +  
+  labs(title="Wind")
+```
+
+```{r}
+#geothermal
+vgeot = percent_renewable %>%
+  filter(!is.na(geothermal)) %>%
+  arrange(geothermal) %>%
+  mutate(country_name=factor(country_name, country_name)) %>% top_n(5,geothermal) %>% slice_max(geothermal, n=5) %>%
+  ggplot( aes(x=country_name, y=geothermal) ) +
+    geom_segment( aes(x=country_name ,xend=country_name, y=0, yend=geothermal), color="#7e96a7") +
+    geom_point(size=2, color="#7e96a7") +
+    coord_flip() +
+    theme_light() +
+    theme(
+    panel.grid.major.x = element_blank(),
+    panel.border = element_blank(),
+    axis.ticks.x = element_blank(),
+    axis.ticks.y = element_blank(),
+    panel.grid.major.y = element_blank(),
+    panel.grid.minor.x = element_blank()
+  ) +
+  xlab("") +
+  ylab("") +  
+  labs(title="Geothermal")
+```
+
+```{r}
+#pumped_hydro_power
+vphp = percent_renewable %>%
+  filter(!is.na(pumped_hydro_power)) %>%
+  arrange(pumped_hydro_power) %>%
+  mutate(country_name=factor(country_name, country_name)) %>% top_n(5,pumped_hydro_power) %>% slice_max(pumped_hydro_power, n=5) %>%
+  ggplot( aes(x=country_name, y=pumped_hydro_power) ) +
+    geom_segment( aes(x=country_name ,xend=country_name, y=0, yend=pumped_hydro_power), color="#7e96a7") +
+    geom_point(size=2, color="#7e96a7") +
+    coord_flip() +
+    theme_light() +
+    theme(
+    panel.grid.major.x = element_blank(),
+    panel.border = element_blank(),
+    axis.ticks.x = element_blank(),
+    axis.ticks.y = element_blank(),
+    panel.grid.major.y = element_blank(),
+    panel.grid.minor.x = element_blank()
+  ) +
+  xlab("") +
+  ylab("") +  
+  labs(title="Pumped hydro power")
+```
+
+```{r}
+#solar
+vsol = percent_renewable %>%
+  filter(!is.na(solar)) %>%
+  arrange(solar) %>%
+  mutate(country_name=factor(country_name, country_name)) %>% top_n(5,solar) %>% slice_max(solar, n=5) %>%
+  ggplot( aes(x=country_name, y=solar) ) +
+    geom_segment( aes(x=country_name ,xend=country_name, y=0, yend=solar), color="#7e96a7") +
+    geom_point(size=2, color="#7e96a7") +
+    coord_flip() +
+    theme_light() +
+    theme(
+    panel.grid.major.x = element_blank(),
+    panel.border = element_blank(),
+    axis.ticks.x = element_blank(),
+    axis.ticks.y = element_blank(),
+    panel.grid.major.y = element_blank(),
+    panel.grid.minor.x = element_blank()
+  ) +
+  xlab("") +
+  ylab("") +  
+  labs(title="Solar")
+```
+
+#### Combined plot: largest clean energy producers by type  
+```{r}
+combined = ggarrange(vnuclear, vhydro, vwind, vphp, vsol, vgeot,
+          labels = c("", "", "", "", "", ""),
+          ncol = 2, nrow = 3)
+
+title <- expression(atop(bold("Largest european clean energy producers in 2018 (nuclear and renewables)")))
+annotate_figure(combined,
+                top=text_grob(title))
+```

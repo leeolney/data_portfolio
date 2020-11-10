@@ -1,0 +1,292 @@
+---
+title: "Detecting fraudulent job posts"
+output:
+  html_document:
+    df_print: paged
+---
+
+**Data source**: [Fake job posting prediction](https://www.kaggle.com/shivamb/real-or-fake-fake-jobposting-prediction)
+
+**Research question**: What are the important features for detecting fraudulent job posts? 
+
+Load packages
+```{r, message = FALSE, warning = FALSE}
+library(Hmisc)
+library(dplyr)
+library(stringr)
+library(tidyverse)
+library(skimr)
+library(corrplot)
+library(pscl)
+library(tree)
+library(rpart)
+library(rpart.plot)
+library(rattle)
+library(viridis)
+library(randomForest)
+library(caret)
+library(pROC)
+library(jtools)
+library(xgboost)
+library(sjPlot)
+library(RColorBrewer)
+```
+
+Import data
+```{r}
+df=read.csv("fake_job_postings.csv",header=TRUE)
+```
+
+Summary
+```{r}
+df = df %>% mutate_at (vars(telecommuting,has_company_logo,has_questions,fraudulent), list(factor))
+skim(df)
+```
+
+Target variable
+```{r}
+Hmisc:: describe(df$fraudulent) #imbalanced dataset
+```
+```{r}
+ggplot(data=df,aes(x=fraudulent, fill= fraudulent)) + geom_bar(width = 0.7) + geom_text(stat='count', aes(label=..count..),vjust=-0.3) + theme_light() +
+    theme(
+    panel.grid.major.x = element_blank(),
+    panel.border = element_blank(),
+    axis.ticks.x = element_blank(),
+    axis.ticks.y = element_blank(),
+    panel.grid.major.y = element_blank(),
+    panel.grid.minor.x = element_blank(),
+    panel.grid.minor.y = element_blank()
+  ) + scale_fill_manual(values = c("#457b9d", "#606c38")) + ylim(c(0,18000)) 
+```
+
+Create new variables
+```{r}
+#binary 
+df2=df
+df2$company_profile_specified = ifelse(df2$company_profile=="","0","1")
+df2$description_specified=ifelse(df2$description=="","0","1")
+df2$requirements_specified=ifelse(df2$requirements=="","0","1")
+df2$benefits_specified=ifelse(df2$benefits=="","0","1")
+df2$salary_specified=ifelse(df2$salary=="","0","1")
+df2$location_specified=ifelse(df2$location=="","0","1")
+df2$function._specified=ifelse(df2$function.=="","0","1")
+df2$department_specified=ifelse(df2$department=="","0","1")
+df2$industry_specified=ifelse(df2$industry=="","0","1")
+df2$emptype_specified=ifelse(df2$employment_type=="","0","1")
+df2$reqexp_specified=ifelse(df2$required_experience=="","0","1")
+df2$reqedu_specified=ifelse(df2$required_education=="","0","1")
+
+#character count
+df2$company_profile_char=nchar(df2$company_profile)
+df2$description_char=nchar(df2$description)
+df2$requirements_char=nchar(df2$requirements)
+df2$benefits_char=nchar(df2$benefits)
+#word count
+df2$company_profile_word=lengths(strsplit(df2$company_profile, '\\S+'))
+df2$description_word=lengths(strsplit(df2$description, '\\S+'))
+df2$requirements_word=lengths(strsplit(df2$requirements, '\\S+'))
+df2$benefits_word=lengths(strsplit(df2$benefits, '\\S+'))
+#avg word length
+df2$company_profile_awl= df2$company_profile_char/df2$company_profile_word
+df2$description_awl= df2$description_char/df2$description_word
+df2$requirements_awl= df2$requirements_char/df2$requirements_word
+df2$benefits_awl = df2$benefits_char/df2$benefits_word
+#concatenate four text variables 
+df2$text1= paste(df2$company_profile, df2$description, df2$requirements, df2$benefits)
+df2$text1_char= nchar(df2$text1)
+df2$text1_word= lengths(strsplit(df2$text1, '\\S+'))
+df2$text1_avl= df2$text1_char/df2$text1_word
+colnames(df2)
+```
+```{r}
+df2 = df2 %>% mutate_at (vars(company_profile_specified,description_specified, requirements_specified,benefits_specified,salary_specified, location_specified, function._specified,department_specified, industry_specified, emptype_specified, reqexp_specified, reqedu_specified), list(factor))
+df2[is.na(df2)] = 0 
+```
+
+Check correlation
+```{r}
+dfnum = select_if(df2[,-1],is.numeric)
+dfnum = data.frame(lapply(dfnum, function(x) as.numeric(as.character(x))))
+res=cor(dfnum)
+corrplot(res, method="color", type="upper", tl.col="#636363" )
+```
+
+Select variables for testing 
+```{r}
+d1= df2 %>% select (fraudulent, emptype_specified, has_company_logo, has_questions, required_experience, company_profile_specified, requirements_specified, benefits_specified, salary_specified, company_profile_char, description_char, requirements_char, company_profile_word, description_word, requirements_word, benefits_word, reqedu_specified, location_specified, department_specified, function._specified, reqexp_specified)
+dim(d1)
+```
+
+Test and train set
+```{r}
+set.seed(1234)
+y1= sample(1:17880,14304)
+xtrain=d1[y1,]
+xtest=d1[-y1,]
+Hmisc:: describe(xtrain$fraudulent)
+Hmisc:: describe(xtest$fraudulent)
+
+```
+
+### Decision Tree 1
+```{r}
+mt = rpart(fraudulent ~., data = xtrain, method = "class", control = rpart.control(minsplit = 1, minbucket = 1, cp = 0.0082))
+fancyRpartPlot(mt)
+printcp(mt)
+mt$variable.importance
+```
+```{r, message = FALSE, warning = FALSE}
+tree.p = predict(mt, xtest, type = "class")
+cmt = confusionMatrix(tree.p, xtest$fraudulent)
+cmt
+round(cmt$byClass["F1"], 4)
+xtest$tp1= tree.p
+roc_t1= roc(response= xtest$fraudulent, predictor = factor(xtest$tp1, ordered=TRUE), plot=TRUE, print.auc=TRUE)
+```
+```{r}
+#visualize variable importance
+v1 = data.frame(imp = mt$variable.importance)
+v2 <- v1 %>% 
+  tibble::rownames_to_column() %>% 
+  dplyr::rename("variable" = rowname) %>% 
+  dplyr::arrange(imp) %>%
+  dplyr::mutate(variable = forcats::fct_inorder(variable))
+ggplot2::ggplot(v2) +
+  geom_col(aes(x = variable, y = imp, fill= imp),
+           col = "white", show.legend = F) +
+  coord_flip() +
+  scale_fill_viridis() +
+  theme_minimal() + labs(x="Variable", y="Importance")
+```
+
+### Random Forest 1
+```{r}
+set.seed(4543)
+rf <- randomForest(fraudulent ~ ., data=xtrain)
+importance(rf)
+varUsed(rf, by.tree=FALSE, count =TRUE)
+varImpPlot(rf)
+```
+```{r, message = FALSE, warning = FALSE}
+rfp = predict(rf, xtest)
+cmrf = confusionMatrix(rfp, xtest$fraudulent)
+cmrf
+round(cmrf$byClass["F1"], 4)
+xtest$rfp= rfp
+roc_rf= roc(response= xtest$fraudulent, predictor = factor(xtest$rfp, ordered=TRUE), plot=TRUE, print.auc=TRUE)
+```
+
+### Logistic regression 1
+```{r}
+model1= glm(fraudulent ~., data=xtrain, family = "binomial")
+summary(model1) 
+pR2(model1)  
+anova(model1, test= "Chisq")
+```
+```{r, message = FALSE, warning = FALSE}
+#visualize coefficients 
+theme_set(theme_light())
+plot_model(model1, color="system")
+```
+```{r, message = FALSE, warning = FALSE}
+#probablity 0.5
+prob=predict(model1,xtest,type="response")
+prob1=rep(0,3576)
+prob1[prob>0.5]=1
+cmlr = confusionMatrix(as.factor(prob1), xtest$fraudulent)
+cmlr
+round(cmlr$byClass["F1"], 4)
+roc_lr2 = roc(xtest$fraudulent, prob1, plot=TRUE, print.auc=TRUE)
+```
+```{r}
+#probablity 0.1
+prob2=rep(0,3576)
+prob2[prob>0.1]=1
+cmlr2 = confusionMatrix(as.factor(prob2), xtest$fraudulent)
+cmlr2
+round(cmlr2$byClass["F1"], 4)
+roc_lr2 = roc(xtest$fraudulent, prob2, plot=TRUE, print.auc=TRUE)
+```
+
+Select variables for testing part 2 
+```{r}
+d2= df2 %>% select (fraudulent, emptype_specified, has_company_logo, has_questions, required_experience, company_profile_specified, requirements_specified, benefits_specified,salary_specified, company_profile_char, description_char, requirements_char, company_profile_word, description_word, requirements_word, benefits_word, reqedu_specified)
+dim(d2)
+xtrain2=d2[y1,]
+xtest2=d2[-y1,]
+```
+
+### Decision Tree 2
+```{r}
+mt2 = rpart(fraudulent ~., data = xtrain2, method = "class", control = rpart.control(minsplit = 1, minbucket = 1, cp = 0.0082))
+fancyRpartPlot(mt2)
+printcp(mt2)
+mt2$variable.importance
+```
+```{r, message = FALSE, warning = FALSE}
+#prediction
+tree.p2 = predict(mt2, xtest2, type = "class")
+cmt2 = confusionMatrix(tree.p2, xtest2$fraudulent)
+cmt2
+round(cmt2$byClass["F1"], 4)
+xtest2$tp2= tree.p2
+roc_t2= roc(response= xtest2$fraudulent, predictor = factor(xtest2$tp2, ordered=TRUE), plot=TRUE, print.auc=TRUE)
+```
+```{r}
+#visualize variable importance
+v3 = data.frame(imp = mt2$variable.importance)
+v4 <- v3 %>% 
+  tibble::rownames_to_column() %>% 
+  dplyr::rename("variable" = rowname) %>% 
+  dplyr::arrange(imp) %>%
+  dplyr::mutate(variable = forcats::fct_inorder(variable))
+ggplot2::ggplot(v4) +
+  geom_col(aes(x = variable, y = imp, fill= imp),
+           col = "white", show.legend = F) +
+  coord_flip() +
+  scale_fill_viridis() +
+  theme_minimal() + labs(x="Variable", y="Importance")
+```
+
+### Random Forest 2
+```{r}
+set.seed(4543)
+rf2 <- randomForest(fraudulent ~ ., data=xtrain2)
+importance(rf2)
+varUsed(rf2, by.tree=FALSE, count =TRUE)
+varImpPlot(rf2)
+```
+```{r, message = FALSE, warning = FALSE}
+#prediction
+rfp2 = predict(rf2, xtest2)
+cmrf2 = confusionMatrix(rfp2, xtest2$fraudulent)
+cmrf2
+round(cmrf2$byClass["F1"], 4) 
+xtest2$rfp2= rfp2
+roc_rf= roc(response= xtest2$fraudulent, predictor = factor(xtest2$rfp2, ordered=TRUE), plot=TRUE, print.auc=TRUE)
+```
+
+### Logistic regression 2
+```{r}
+model2= glm(fraudulent ~., data=xtrain2, family = "binomial")
+summary(model2) 
+pR2(model2)  
+anova(model2, test= "Chisq")
+```
+```{r, message = FALSE, warning = FALSE}
+probb=predict(model2,xtest2,type="response")
+probb1=rep(0,3576)
+probb1[prob>0.1]=1
+cflr3 = confusionMatrix(as.factor(probb1), xtest2$fraudulent)
+cflr3
+round(cflr3$byClass["F1"], 4)
+roc_lr3 = roc(xtest2$fraudulent, probb1, plot=TRUE, print.auc=TRUE)
+```
+
+```{r}
+#visualize coefficients 
+plot_model(model2,colors="system")
+```
+
+

@@ -1,0 +1,281 @@
+---
+title: "AUS Pets Viz"
+output:
+  html_document:
+    df_print: paged
+---
+
+### Data source
+### [Australia Pets](https://github.com/rfordatascience/tidytuesday/blob/master/data/2020/2020-07-21/readme.md)
+
+### Load library
+```{r, message = FALSE, warning = FALSE}
+library(tidyverse)
+library(skimr)
+library(RColorBrewer)
+library(networkD3)
+library(htmlwidgets)
+library(waffle)
+library(lubridate)
+library(Hmisc)
+library(viridis)
+library(plotly)
+```
+
+## Part 1: RSPCA Animal Outcomes 
+### Import data
+```{r, message = FALSE, warning = FALSE}
+animal_outcomes <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2020/2020-07-21/animal_outcomes.csv')
+```
+
+### Summary
+```{r}
+dim(animal_outcomes)
+ao = animal_outcomes %>% mutate_at(vars(year,animal_type,outcome), list(factor))
+skim(ao)
+Hmisc::describe(ao$year)
+```
+
+### Visualization
+#### Animal intake types throughout the years
+```{r}
+intake = animal_outcomes %>% group_by(animal_type,year) %>% tally(Total) %>% ggplot(aes(x= year, y = n, group = animal_type, color=animal_type)) + geom_line() + geom_point() + theme_classic() + theme(legend.position="top") + scale_color_brewer(palette="Dark2") + labs(x="Year", y="Intake count", title="Animal intake types throughout the years", subtitle= "RSPCA Australia animal outcomes 1999-2018")
+intake
+```
+
+#### Animal types and outcomes in 2018
+Data preparation
+```{r}
+ao18 = animal_outcomes %>% filter(year == "2018") %>% as.data.frame
+links = subset(ao18, select=-c(ACT,NSW,NT,QLD,SA,TAS,VIC,WA,year))
+colnames(links)[1] = "source"
+colnames(links)[2] = "target"
+colnames(links)[3] = "value"
+nodes = data.frame(name=c(as.character(links$source),as.character(links$target)) %>% unique())
+links$IDsource <- match(links$source, nodes$name)-1 
+links$IDtarget <- match(links$target, nodes$name)-1
+```
+
+Plot
+```{r}
+summary18 <- sankeyNetwork(Links = links, Nodes = nodes,
+              Source = "IDsource", Target = "IDtarget",
+              Value = "value", NodeID = "name", 
+              sinksRight=FALSE, fontSize = 14)
+summary18 <- htmlwidgets::prependContent(summary18, htmltools::tags$h3("Australia RSPCA animal types and outcomes in 2018"))
+summary18                                    
+```
+
+#### Percentage of euthanized cats and dogs
+Subset
+```{r}
+cd_int = animal_outcomes %>% filter(animal_type == "Dogs" | animal_type == "Cats") %>% group_by(animal_type,year) %>% tally(Total) %>% mutate_at(vars(year,animal_type), list(factor)) %>% as.data.frame()
+cd_eth = animal_outcomes %>% filter(animal_type == "Dogs" | animal_type == "Cats") %>% filter(outcome=="Euthanized") %>% group_by(animal_type,year, outcome) %>% tally(Total) %>% mutate_at(vars(year,animal_type,outcome), list(factor)) %>% as.data.frame() 
+cd_reh = animal_outcomes %>% filter(animal_type == "Dogs" | animal_type == "Cats") %>% filter(outcome=="Rehomed") %>% group_by(animal_type,year, outcome) %>% tally(Total) %>% mutate_at(vars(year,animal_type,outcome), list(factor)) %>% as.data.frame()
+```
+
+Get proportion
+```{r}
+cd_int$euth_por= ((cd_eth$n/cd_int$n))
+head(cd_int)
+```
+
+Plot
+```{r}
+cd2 = ggplot(cd_int, aes(x=year, y=euth_por)) +
+  geom_segment( aes(x=year, xend=year, y=0, yend=euth_por), color="grey49") +
+  geom_point(aes(x=year, y=euth_por, color= animal_type),size=2) + facet_wrap(~animal_type, nrow=2) + scale_color_brewer(palette="Dark2") + 
+  theme_light() +
+  theme(
+    panel.grid.major.x = element_blank(),
+    panel.border = element_blank(),
+    axis.ticks.x = element_blank()
+  ) + theme(axis.text.x = element_text(angle=90)) + scale_y_continuous(labels = scales::percent_format(), limits=c(0,1)) + labs(x="Year", y="Euthanized %", title="Proportion of euthanized dogs and cats intakes", subtitle = "RSPCA Australia animal outcomes 1999-2018")
+cd2
+```
+
+#### Percentage of euthanized cats and dogs
+Get proportion
+```{r}
+cd_int$reh_por = ((cd_reh$n/cd_int$n))
+head(cd_int)
+```
+
+Plot
+```{r}
+rp2 = ggplot(cd_int, aes(x=year, y=reh_por)) +
+  geom_segment( aes(x=year, xend=year, y=0, yend=reh_por), color="dodgerblue4") +
+  geom_point(aes(x=year, y=reh_por, color= animal_type),size=2) + facet_wrap(~animal_type, nrow=2) + scale_color_brewer(palette="Dark2") + 
+  theme_light() +
+  theme(
+    panel.grid.major.x = element_blank(),
+    panel.border = element_blank(),
+    axis.ticks.x = element_blank()
+  ) + theme(axis.text.x = element_text(angle=90)) + scale_y_continuous(labels = scales::percent_format(), limits=c(0,1)) + labs(x="Year", y="Rehomed %", title="Proportion of rehomed dogs and cats intakes", subtitle = "RSPCA Australia animal outcomes 1999-2018")
+rp2
+```
+
+#### Dogs outcome in 2018
+```{r}
+dogsOutcome = c('Reclaimed'=13107,'Rehomed'=12872,'Currently In Care'=1941,'Transferred'=1391,'Other'=244,'Euthanized'=4308)
+waffle1 = waffle(dogsOutcome/200, rows=5, size =0.5, colors=c("#00509d","#fdc500","#538d22","#f18701","#dad7cd","#2f3e46") ,title="Dogs outcomes in 2018", xlab="1 square = 200 dogs") + theme(legend.position="bottom")
+waffle1
+```
+
+
+#### Cats outcome in 2018
+```{r}
+catsOutcome = c('Reclaimed'=2665,'Rehomed'=31105,'Currently In Care'=3944,'Transferred'=1033,'Other'=683,'Euthanized'=11740)
+waffle2 = waffle(catsOutcome/200, rows=5, size =0.7, colors=c("#00509d","#fdc500","#538d22","#f18701","#dad7cd","#2f3e46") ,title="Cats outcomes in 2018", xlab="1 square = 200 catss") + theme(legend.position="bottom")
+waffle2
+```
+
+
+## Part 2: Townsville Animal Complaints
+### Import data
+```{r}
+animal_compliants = read.csv("animal_c.csv", header=TRUE)
+```
+
+### Change variable type
+```{r}
+colnames(animal_compliants)
+animal_compliants$date2= as.Date(animal_compliants$date2)
+animal_compliants$month = month(animal_compliants$date2)
+animal_compliants$year = year(animal_compliants$date2)
+ac = animal_compliants %>% mutate_at(vars(animalType2,complaintType,suburb, dateRecieved, electoralDivision),list(factor)) %>% as.data.frame()
+str(animal_compliants)
+```
+
+### Visualization
+#### Complaints about dogs (by month and year)
+```{r}
+gt1= ac %>% filter(animalType2 == "dog") %>% group_by(year, month) %>% tally() %>% ggplot(aes(x=month, y=year)) + geom_tile(aes(fill = n), color = "black") +
+  scale_fill_gradientn(colors = c("#a8dadc", "#457b9d", "#1d3557")) + 
+  theme_classic() + scale_x_continuous(breaks = seq(1, 12, 1), labels = month.abb) + theme_classic() + scale_y_continuous(breaks=seq(2013,2020, by =1)) +
+labs(x = "Month(date recieved)", y = "Year(date recieved)", fill = "Count", title = "Complaints about dog", subtitle= "Townsville Animal Complaints")
+gt1
+```
+
+#### Complaints about cats (by month and year)
+```{r}
+gt2= ac %>% filter(animalType2 == "cat") %>% group_by(year, month) %>% tally() %>% ggplot(aes(x=month, y=year)) + geom_tile(aes(fill = n), color = "black") +
+  scale_fill_gradientn(colors = c("#F4F269", "#606c38", "#283618")) + 
+  theme_classic() + scale_x_continuous(breaks = seq(1, 12, 1), labels = month.abb) + theme_classic() + scale_y_continuous(breaks=seq(2013,2020, by =1)) +
+labs(x = "Month(date recieved)", y = "Year(date recieved)", fill = "Count", title = "Complaints about cats", subtitle= "Townsville Animal Complaints")
+gt2
+```
+
+#### Complaints types over the years
+```{r}
+bp1 = ggplot(ac) + geom_bar(aes(x=year, fill= complaintType)) + facet_wrap(~animalType2, nrow=2) + theme_classic() + scale_fill_brewer(palette="Dark2") + labs(x="Year(date recieved)", y = "Count", title= "Complaints over the years", subtitle= "Townsville Animal Complaints 2013 to 2020")
+bp1
+```
+
+```{r}
+trend1= ac %>% filter(between(year, 2014,2019)) %>% group_by(year, complaintType) %>% tally() %>% ggplot(aes(x=year,y=n, group= complaintType, color=complaintType)) + geom_line(stat='identity') + scale_color_brewer(palette="Dark2") + theme_classic() + labs(x="Year(date recieved)", y = "Number of complaints", title= "Complaint types over the years", subtitle= "Townsville Animal Complaints 2014 to 2019")
+trend1
+```
+
+
+#### Dogs: Complaints type (2014-2019)
+```{r, message = FALSE, warning = FALSE}
+vp1= ac %>% filter(animalType2 == "dog" & (between(year, 2014,2019)))  %>% group_by(year,complaintType) %>% tally()
+vp2 = vp1 %>% ggplot(aes(x= complaintType, y= n, fill=complaintType, color=complaintType)) + geom_violin(width=2.1,size=0.2) + scale_fill_viridis(discrete=TRUE) + scale_color_viridis(discrete=TRUE) + ylim(0,1600) + theme_minimal() + theme(legend.position="none") + coord_flip() + labs(x="Complaint type", y = "Count", title= "Dogs: Complaints type (2014 to 2019)", subtitle= "Townsville Animal Complaints")
+vp2
+```
+
+#### Complaints about cats (2014-2019)
+```{r, message = FALSE, warning = FALSE}
+vp3= ac %>% filter(animalType2 == "cat" & (between(year, 2014,2019)))  %>% group_by(year,complaintType) %>% tally()
+vp4 = vp3 %>% ggplot(aes(x= complaintType, y= n, fill=complaintType, color=complaintType)) + geom_violin(width=2.1,size=0.2) + scale_fill_viridis(discrete=TRUE) + scale_color_viridis(discrete=TRUE) + ylim(0,1600) + theme_minimal() + theme(legend.position="none") + coord_flip() + labs(x="Complaint type", y = "Count", title= "Cats: Complaints type (2014 to 2019)", subtitle= "Townsville Animal Complaints")
+vp4
+```
+
+
+## Part 3: Brisbane Animal Complaints
+
+### Import data
+```{r, message = FALSE, warning = FALSE}
+brisbane_complaints = readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2020/2020-07-21/brisbane_complaints.csv')
+```
+
+### Check dates 
+```{r}
+brisbane_complaints$yearquarter = brisbane_complaints$date_range
+unique(brisbane_complaints$date_range)
+```
+
+### Replace date string with year and quarter
+```{r}
+brisbane_complaints$yearquarter = str_replace_all(brisbane_complaints$yearquarter, "1st-quarter-2016-17.csv", "2016-Q1")
+brisbane_complaints$yearquarter = str_replace_all(brisbane_complaints$yearquarter, "apr-jun-2019.csv", "2019-Q2")
+brisbane_complaints$yearquarter = str_replace_all(brisbane_complaints$yearquarter, "apr-to-jun-2018.csv", "2018-Q2")
+brisbane_complaints$yearquarter = str_replace_all(brisbane_complaints$yearquarter, "april-june-2016.csv", "2016-Q2")
+brisbane_complaints$yearquarter = str_replace_all(brisbane_complaints$yearquarter, "april-to-june-2017.csv", "2017-Q2")
+brisbane_complaints$yearquarter = str_replace_all(brisbane_complaints$yearquarter, "cars-srsa-open-data-animal-related-complaints-apr-to-jun-2020.csv", "2020-Q2")
+brisbane_complaints$yearquarter = str_replace_all(brisbane_complaints$yearquarter, "cars-srsa-open-data-animal-related-complaints-jan-to-mar-2020.csv", "2020-Q1")
+brisbane_complaints$yearquarter = str_replace_all(brisbane_complaints$yearquarter, "cars-srsa-open-data-animal-related-complaints-oct-to-dec-2019.csv", "2019-Q4")
+brisbane_complaints$yearquarter = str_replace_all(brisbane_complaints$yearquarter, "jan-mar-2019.csv", "2019-Q1")
+brisbane_complaints$yearquarter = str_replace_all(brisbane_complaints$yearquarter, "jan-to-mar-2018.csv", "2018-Q1")
+brisbane_complaints$yearquarter = str_replace_all(brisbane_complaints$yearquarter, "january-to-march-2017.csv", "2017-Q1")
+brisbane_complaints$yearquarter = str_replace_all(brisbane_complaints$yearquarter, "jul-to-sep-2018.csv", "2018-Q3")
+brisbane_complaints$yearquarter = str_replace_all(brisbane_complaints$yearquarter, "july-to-september-2017.csv", "2017-Q3")
+brisbane_complaints$yearquarter = str_replace_all(brisbane_complaints$yearquarter, "jul-to-sep-2019.csv", "2017-Q3")
+brisbane_complaints$yearquarter = str_replace_all(brisbane_complaints$yearquarter, "oct-to-dec-2018.csv", "2018-Q4")
+brisbane_complaints$yearquarter = str_replace_all(brisbane_complaints$yearquarter, "october-to-december-2016.csv", "2016-Q4")
+brisbane_complaints$yearquarter = str_replace_all(brisbane_complaints$yearquarter, "october-to-december-2017.csv", "2017-Q4")
+sort(unique(brisbane_complaints$yearquarter),decreasing=FALSE)
+```
+
+### Subset 
+```{r}
+sum(is.na(brisbane_complaints$responsible_office))
+bc= subset(brisbane_complaints, select=-c(responsible_office, date_range, nature, city))
+##remove 2016 obs 
+bc = bc[!grepl("2016", brisbane_complaints$yearquarter),]
+sort(unique(bc$yearquarter),decreasing=FALSE)
+bc = bc %>% mutate_at(vars(animal_type,category,suburb, yearquarter),list(factor)) 
+summary(bc)
+```
+
+### Visualisations
+#### Complaints category (Jan 2017 to Jun 2020)
+```{r}
+bv1= bc %>% group_by(category) %>% tally() %>% ggplot(aes(x=category, y=n, fill=n)) +  geom_bar(stat="identity") + theme_classic() + scale_fill_viridis() + coord_flip() + labs(x="Complaints types", y = "Count", title= "Complaint Categories", subtitle= "Brisbane Animal Complaints Jan 2017 to June 2020")
+bv1
+```
+
+#### Animal type (Jan 2017 to Jun 2020)
+```{r}
+bv2= bc %>% group_by(animal_type) %>% tally() %>% ggplot(aes(x=animal_type, y=n, fill=n)) +  geom_bar(stat="identity") + theme_classic() + scale_fill_viridis() + coord_flip() + labs(x="Animal types", y = "Count", title= "Animal Types", subtitle= "Brisbane Animal Complaints Jan 2017 to June 2020")
+bv2
+```
+
+#### Number of complaints throughout the quarters
+```{r}
+bv3= bc %>% group_by(yearquarter) %>% tally() %>% ggplot(aes(x=yearquarter, y=n, group=1)) + geom_line(color="black") + geom_point(color = "white", shape = 22, aes(fill = n), size = 5) + scale_fill_viridis_c(option = "plasma") + theme(axis.text.x = element_text(angle=90)) + labs(x = "Year-quarter", y = "Number of complaints", title = "Number of complaints throughout the quarters",subtitle= "Brisbane Animal Complaints Jan 2017 to June 2020")
+bv3
+```
+
+#### Number of complaints, yearquarter, animal type
+```{r}
+bv4= bc %>% group_by(yearquarter,animal_type) %>% tally() %>%
+  ggplot( aes(x=yearquarter, y=n, group=animal_type, fill=animal_type)) +
+    geom_area() +
+    scale_fill_viridis(discrete = TRUE) +
+    theme(legend.position="none") +
+    ggtitle("Complaints by animal types from 2017-Q1 to 2020-Q2 ") +
+    theme_minimal() + scale_x_discrete("2017-Q1 to 2020-Q2",breaks=2) +
+    theme(
+      legend.position="none",
+      panel.spacing = unit(0.2, "lines"),
+      strip.text.x = element_text(size = 8),
+      plot.title = element_text(size=14)
+    ) + 
+    facet_wrap(~animal_type)
+bv4
+```
+
+
+
