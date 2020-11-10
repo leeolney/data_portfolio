@@ -25,12 +25,12 @@ This is a repository containing my data analytics projects for academic and self
   * [**Onshore pipeline incidents in the US from 2010 to 2017**](https://github.com/leeolney/data-portfolio/tree/main/onshore_pipeline):  focused on predicting whether an onshore pipeline accident in the US will incur a cost of 100,000 USD, and investigating the relationship between net loss barrels, all costs and liquid recovery barrels. 
     * ML with with logistic regression, decision tree, hierarchical clustering, k-means clustering [(.R)](https://github.com/leeolney/data-portfolio/blob/main/onshore_pipeline/pipeline.R)
     * Visualisation [(.twbx)](https://public.tableau.com/profile/lee.olney#!/vizhome/onshore_pipeline_accidents/Dashboard1)
-    * [Project report (.docx](https://github.com/leeolney/data_portfolio/blob/main/onshore_pipeline/report_pipeline.docx)
+    * Project report [(.docx](https://github.com/leeolney/data_portfolio/blob/main/onshore_pipeline/report_pipeline.docx)
 
   * [**Mobile strategy games on the Apple App Store**](https://github.com/leeolney/data-portfolio/tree/main/strategy_games): focused on predicting if a game will receive a user rating score of 4.0 and above, and investigating the relationship between user rating count, price and size for the purpose of guiding game design decisions. 
     * ML with logistic regression, decision tree, hierarchical clustering, k-means clustering [(.R)](https://github.com/leeolney/data-portfolio/blob/main/mobile_strategy_games/mobile_strategy_games.R)
     * Visualization [(.twbx)](https://public.tableau.com/profile/lee.olney#!/vizhome/CW1_games/board-1)
-    * [Project report (.docx](https://github.com/leeolney/data_portfolio/blob/main/mobile_strategy_games/report_mbg.docx)
+    * Project report [(.docx](https://github.com/leeolney/data_portfolio/blob/main/mobile_strategy_games/report_mbg.docx)
    
 
 * **Data visualization** 
