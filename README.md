@@ -41,7 +41,7 @@ This is a repository containing my data analytics projects for academic and self
     * [Crop Yield (R Notebook)](https://rpubs.com/leeolney/crop): global key crops yield and nitrogen fertilizer usage.
     * [Phone Subscriptions (R Notebook)](https://rpubs.com/leeolney/phone_subs): mobile and landline phone subscriptions from 1990 to 2017.
     * [Wind Turbines (R Notebook)](https://rpubs.com/leeolney/wind_turbines): Canadian wind turbines project capacity, largest manufacturers and total capacity commissioned from 1993 to 2019.
-    * [Extinct Plants (R Notebook)](https://rpubs.com/leeolney/extinct_plants): exploring extinct plants threat types, action types, location and year last seen. 
+    * [Extinct Plants (R Notebook)](https://rpubs.com/leeolney/extinct_plants): exploring extinct plants threat types and action taken by continent and year last seen.  
    * **Tableau**
       * [Middle East rig activities](https://public.tableau.com/profile/lee.olney#!/vizhome/MERigActivities/Dashboard1) for oilfield services regional business development and operations focusing on contracts
       * [Worldwide rig activities](https://public.tableau.com/profile/lee.olney#!/vizhome/RigActivities/B1) for oilfield services international strategic accounts focusing on contracts 
