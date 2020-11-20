@@ -35,10 +35,13 @@ This is a repository containing my data analytics projects for academic and self
 
 * **Data visualization** 
   * **R**
-    * [Australian pets (R Notebook)](https://rpubs.com/leeolney/auspets): animal intake and outcomes, and animal complaints throughout the years.
-    * [Steam games (R Notebook)](https://rpubs.com/leeolney/684334): looking at high owner games (>20,000) on Steam, developers, publishers and meta scores. 
-    * [European energy (R Notebook)](https://rpubs.com/leeolney/euenergy): conventional thermal, nuclear energy and thermal energy produced by European countries in 2018.  
-    * [Crop Yield (R Notebook)](https://rpubs.com/leeolney/crop): global key crops yield and nitrogen fertilizer usage
+    * [Australian Pets (R Notebook)](https://rpubs.com/leeolney/auspets): animal intake and outcomes, and animal complaints throughout the years.
+    * [Steam Games (R Notebook)](https://rpubs.com/leeolney/684334): looking at high owner games (>20,000) on Steam, developers, publishers and meta scores. 
+    * [European Energy (R Notebook)](https://rpubs.com/leeolney/euenergy): conventional thermal, nuclear energy and thermal energy produced by European countries in 2018.  
+    * [Crop Yield (R Notebook)](https://rpubs.com/leeolney/crop): global key crops yield and nitrogen fertilizer usage.
+    * [Phone Subscriptions (R Notebook)](https://rpubs.com/leeolney/phone_subs): mobile and landline phone subscriptions from 1990 to 2017.
+    * [Wind Turbines (R Notebook)](https://rpubs.com/leeolney/wind_turbines): Canadian wind turbines project capacity, largest manufacturers and total capacity commissioned from 1993 to 2019.
+    * [Extinct Plants (R Notebook)](https://rpubs.com/leeolney/extinct_plants): exploring extinct plants threat types, action types, location and year last seen. 
    * **Tableau**
       * [Middle East rig activities](https://public.tableau.com/profile/lee.olney#!/vizhome/MERigActivities/Dashboard1) for oilfield services regional business development and operations focusing on contracts
       * [Worldwide rig activities](https://public.tableau.com/profile/lee.olney#!/vizhome/RigActivities/B1) for oilfield services international strategic accounts focusing on contracts 
