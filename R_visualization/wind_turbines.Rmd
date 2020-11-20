@@ -1,0 +1,137 @@
+---
+title: "Wind Turbines"
+output: html_notebook
+---
+
+**Notebook description**: Basic data wrangling and data visualization practice
+
+**Data source**: TidyTuesday [Canadian Wind Turbines](https://github.com/rfordatascience/tidytuesday/blob/master/data/2020/2020-10-27/readme.md) from [Government of Canada](https://open.canada.ca/data/en/dataset/79fdad93-9025-49ad-ba16-c26d718cc070)
+
+Load packages
+```{r, message = FALSE, warning = FALSE}
+library(tidyverse)
+library(psych)
+library(ggsci)
+library(viridis)
+```
+
+Import data
+```{r, message = FALSE, warning = FALSE}
+wind_turbine <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2020/2020-10-27/wind-turbine.csv')
+dim(wind_turbine)
+colnames(wind_turbine)
+length(unique(wind_turbine$project_name)) 
+```
+
+
+Summary of turbines in a wind farm (project)
+```{r}
+wind_turbine %>% group_by(project_name) %>% tally(sort=T) %>% rename(turbine_n=n) %>%  psych::describe(quant=c(.25,.75))
+#histogram
+#wind_turbine %>% group_by(project_name) %>% tally(sort=T) %>% rename(turbine_n=n) %>% group_by(turbine_n) %>% tally() %>% rename(projects_n=n) %>% ggplot(aes(x=turbine_n, y=projects_n)) + geom_col() + theme_light()
+```
+
+Project capacity by province (inspired by toeb18)
+```{r, message = FALSE}
+wind_turbine %>% group_by(province_territory) %>% summarise(project_capacity = sum(total_project_capacity_mw)) %>%
+  ggplot(aes(x = province_territory,y = project_capacity)) +  geom_segment(aes(x=reorder(province_territory, project_capacity), xend=province_territory, y=0, yend=project_capacity), color="#00509d") + geom_point(size=2, color="#fdc500") +
+  coord_flip() + theme_light() + theme(
+    panel.grid.major.x = element_blank(),
+    panel.border = element_blank(),
+    axis.ticks.x = element_blank(),
+    axis.ticks.y = element_blank(),
+    panel.grid.major.y = element_blank(),
+    panel.grid.minor.x = element_blank(),
+    panel.grid.minor.y = element_blank()) +
+    labs(x= "Canadian Province", y="Cummulative turbine projects capacity in MW", title="Candian Wind Turbines", subtitle="Cummulative project capacity by province")
+```
+
+Correlation between number of turbines and wind farm capacity (inspired by kustav_sen)
+```{r, message = FALSE}
+wind_turbine %>% group_by(province_territory, project_name) %>% summarise(turbines_n = n(), project_cap = mean(total_project_capacity_mw)) %>% ggplot(aes(x=project_cap, y=turbines_n, color=province_territory)) + geom_point(size=1.5) + facet_wrap(~province_territory) + labs(x= "Number of Turbines", y = "Project Capacity in MW") + theme_minimal() + theme(legend.position="none") + labs(title= "Project capacity and number of turbines by Canadian province")
+```
+
+Manufacturer
+```{r}
+#find top manufacturers
+manufacturers <- wind_turbine %>% 
+  group_by(manufacturer) %>% 
+  summarise(num_turbines = n()) %>%
+  mutate(manu_ranking = min_rank(desc(num_turbines))) %>% 
+  arrange(desc(num_turbines))
+
+topmanufacturers = as_vector(manufacturers[1:4, 'manufacturer'])
+wind_turbine2 = wind_turbine %>% mutate(manufacturer = replace(manufacturer, manufacturer %in% topmanufacturers, "Others"))
+wind_turbine2 <- wind_turbine %>% 
+  left_join(manufacturers) %>% 
+  select(-num_turbines) %>% 
+  mutate(manu_ranking = replace(manu_ranking, manufacturer == "Others", 6))
+```
+The top four manufacturers with the most turbines are Vestas, GE, Siemens, Enercon
+
+```{r}
+#separate strings in commission date 
+wind_turbine2 <- wind_turbine2 %>% 
+  separate(commissioning_date, sep = "/", into = c("com_date_1", "com_date_2", "com_date_3")) %>%
+  mutate(com_date_1 = as.numeric(com_date_1),
+         com_date_2 = as.numeric(com_date_2),
+         com_date_3 = as.numeric(com_date_3), 
+         most_recent_com_date = pmax(com_date_1, com_date_2, com_date_3, na.rm = TRUE)
+         )
+#get annual capacity added and annual turbines added
+wind_turbine2 <- wind_turbine2 %>% 
+  group_by(most_recent_com_date) %>% 
+  mutate(annual_capacity_added = sum(turbine_rated_capacity_k_w, na.rm = TRUE),
+         annual_turbines_added = n()
+         ) %>% 
+  ungroup()
+#get proportion by manufacturer
+wind_turbine2 <-  wind_turbine2 %>% 
+  group_by(most_recent_com_date, manufacturer) %>%
+  summarise(capacity_added = sum(turbine_rated_capacity_k_w, na.rm = TRUE),
+            turbines_added = n(),
+            prop_capacity_added = capacity_added / annual_capacity_added,
+            prop_turbines_added = turbines_added / annual_turbines_added,
+            annual_capacity_added = annual_capacity_added,
+            annual_turbines_added = annual_turbines_added,
+            manu_ranking = manu_ranking
+            ) %>% 
+  distinct() %>% 
+  ungroup()
+#ggplot(wind_turbine2, aes(x=most_recent_com_date, y= annual_turbines_added)) + geom_col(fill="#2a9d8f") + theme_light() + labs(x="Most recent comissioning date", y= "Turbines added", title= "Annual wind turbines added", subtitle = "Canadian wind turbines")
+#ggplot(wind_turbine2, aes(x=most_recent_com_date, y= annual_capacity_added)) + geom_col(fill="#15616d") + theme_light() + labs(x="Most recent comissioning date", y= "Capacity added", title= "Annual capacity added", subtitle = "Canadian wind turbines")
+```
+
+Proportion of the total wind energy generation capacity commissioned in a given year (inspired by analytics_urban)
+```{r, message = FALSE, warning = FALSE}
+
+wind_turbine2$manu_ranking[wind_turbine2$manu_ranking >4] <- 'Others'
+ggplot(wind_turbine2, aes(x = most_recent_com_date, y= prop_capacity_added, fill=factor(manu_ranking, labels=c("1:Vestas", "2:GE", "3:Siemens", "4:Enercon", "Others")))) + geom_col()  + scale_fill_jama() + theme_light() + scale_x_continuous(breaks = seq(from=1993, to=2019, by=5)) + labs(fill="Manufacturer", title= "Canadian wind turbines: Four largest manufacturers", subtitle="Proportion of the total wind energy generation capacity commissioned in a given year", x="", y= "Proportion") + theme(
+    panel.grid.major.x = element_blank(),
+    panel.border = element_blank(),
+    axis.ticks.x = element_blank(),
+    axis.ticks.y = element_blank(),
+    panel.grid.major.y = element_blank(),
+    panel.grid.minor.x = element_blank(),
+    panel.grid.minor.y = element_blank())
+```
+
+Total capacity commissioned across the years (inspired by analytics_urban)
+```{r}
+ggplot(wind_turbine2, aes(x=most_recent_com_date, y=annual_capacity_added)) + geom_line(color="slategrey") + geom_point(color="white",shape=24,aes(fill=annual_capacity_added, size=3)) + labs(y="Total capacity commissioned (megawatts)", x="", title="Canadian wind turbines: Total capacity commissioned across the years") + theme_light() + scale_x_continuous(breaks = seq(from=1993, to=2019, by=5)) + theme(
+    panel.grid.major.x = element_blank(),
+    panel.border = element_blank(),
+    axis.ticks.x = element_blank(),
+    axis.ticks.y = element_blank(),
+    panel.grid.major.y = element_blank(),
+    panel.grid.minor.x = element_blank(),
+    panel.grid.minor.y = element_blank(),
+    legend.position="none") + scale_fill_viridis(option="cividis")
+```
+
+
+
+
+
+
+
