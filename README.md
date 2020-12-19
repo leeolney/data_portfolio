@@ -48,7 +48,6 @@ This is a repository containing my data analytics projects for academic and self
     * [European Energy (R Notebook)](https://rpubs.com/leeolney/euenergy): conventional thermal, nuclear energy and thermal energy produced by European countries in 2018.  
     * [Crop Yield (R Notebook)](https://rpubs.com/leeolney/crop): global key crops yield and nitrogen fertilizer usage.
     * [Phone Subscriptions (R Notebook)](https://rpubs.com/leeolney/phone_subs): mobile and landline phone subscriptions from 1990 to 2017.
-    * [Wind Turbines (R Notebook)](https://rpubs.com/leeolney/wind_turbines): exploring Canadian wind turbines project capacity, largest manufacturers and total capacity commissioned from 1993 to 2019.
     * [Extinct Plants (R Notebook)](https://rpubs.com/leeolney/extinct_plants): exploring extinct plants threat types and action taken by continent and year last seen.  
     * [Washington Trails (R Notebook)](https://rpubs.com/leeolney/washington_trails): looking at dog friendly trails, ratings, trips, and features
    * **Tableau**
@@ -61,10 +60,12 @@ This is a repository containing my data analytics projects for academic and self
       
 
 * **Micro projects**
+  * [Bicycle Collisions (Jupyter Notebook)](https://github.com/leeolney/data_portfolio/blob/main/micro_projects/bicycle_collisions.ipynb): exploring the SWITRS SQLite hosted database and using Fague SQL
   * [Product review sentiment classification (.R)](https://github.com/leeolney/data-portfolio/blob/main/micro_projects/m2_product_reviews.R): applying basic text preprocessing methods and sentiment analysis to classify dog products review.
   * [Association rules mining (.R)](https://github.com/leeolney/data-portfolio/blob/main/micro_projects/m1_arm_apriori.R): preparing transaction data, applying association mining with apriori algorithm and visualizing results. 
   * [Hyperparameters tuning (Jupyter Notebook)](https://github.com/leeolney/data-portfolio/blob/main/micro_projects/m3_strategy_games_p.ipynb): applying decision tree and random forest with hyperparameters tuning using grid search and random search methods.  
-  * [Bicycle Collisions (Jupyter Notebook)](https://github.com/leeolney/data_portfolio/blob/main/micro_projects/bicycle_collisions.ipynb): exploring the SWITRS SQLite hosted database and using Fague SQL 
+  * [Wind Turbines (.Rmd)](https://github.com/leeolney/data_portfolio/blob/main/micro_projects/wind_turbines.Rmd): visualizations and predicting turbines capacity
+  * [Expeditions (.Rmd)](https://github.com/leeolney/data_portfolio/blob/main/micro_projects/expeditions.Rmd): visualizations and predicting turbines capacity
   
   
 Contact information: 
