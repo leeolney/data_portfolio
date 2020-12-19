@@ -1,5 +1,5 @@
 ---
-title: "Exploring pet food orders"
+title: "Pet Food Orders"
 output: html_notebook
 ---
 **Data source**: [Pet Food Customer Orders Online](https://www.kaggle.com/jahangirraina/pet-food-customer-orders-online) 
