@@ -18,8 +18,8 @@ This is a repository containing my data analytics projects for academic and self
     * Part 1 [(R Notebook)](https://rpubs.com/leeolney/petfoodorders) : using supervised learning to identify key features that explain can pet treats purchases, wet food purchases and follow up wet food purchases
     * Part 2 [(Jupyter Notebook)](https://github.com/leeolney/data_portfolio/blob/main/pet_food_orders/pet_food_orders_2.ipynb) : further testing of classification methods (with hyperparameter tuning) for predicting wet food purchase, including gradient boosting, extra trees, XGboost, AdaBoost etc. 
     
-  * [**Churn Prediction exercise**](https://rpubs.com/leeolney/churnprediction): analysis of bank customers leaving credit card services. 
-    * EDA and Prediction [(R Notebook)](https://rpubs.com/leeolney/churnprediction) : identifying important features and evaluating the performance of logistic regression, decision tree, random forest and XGBoost models. 
+  * [**Churn prediction exercise**](https://rpubs.com/leeolney/churnprediction): analysis of bank customers leaving credit card services. 
+    * EDA and ML [(R Notebook)](https://rpubs.com/leeolney/churnprediction) : identifying important features and evaluating the performance of logistic regression, decision tree, random forest and XGBoost models. 
     
   * [**Hotel booking cancellations**](https://github.com/leeolney/data-portfolio/tree/main/hotel_booking): analysis of hotel booking cancellations using the hotel booking demand dataset, focusing on identifying the key variables for predicting hotel booking cancellations.
     * Visualization and ML with logistic regression, decision tree, random forest, XGBoost [(Jupyter Notebook)](https://github.com/leeolney/data-portfolio/blob/main/hotel_booking/hotel_booking_p.ipynb)
