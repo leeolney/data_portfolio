@@ -10,8 +10,16 @@ This is a repository containing my data analytics projects for academic and self
 
 * **Data visualization and ML**
 
-  * [**Pet food orders**](https://github.com/leeolney/data-portfolio/tree/main/strategy_games): exploratory analysis focused on finding key features that explain pet treats purchases, wet food purchases and follow up wet food purchases. 
-    * Feature extraction, visualization, clustering and model-based feature importances [(R Notebook)](https://rpubs.com/leeolney/petfoodorders)
+  * [**Play Store**](https://github.com/leeolney/data_portfolio/tree/main/play_store): analysis of Apps on the Google Play Store.
+    * EDA [(R Notebook)](https://rpubs.com/leeolney/playstore) : exploring both apps and games on the Google Play Store, looking into pricing models, rating scores, installs, ad support and content ratings
+    * ML [(Jupyter Notebook)](https://github.com/leeolney/data_portfolio/blob/main/play_store/play_store_games.ipynb) : testing models (with hyperparameter tuning) for predicting if a Play Store game will achieve a rating score of 4.5 and above
+    
+  * [**Pet food orders**](https://github.com/leeolney/data_portfolio/tree/main/pet_food_orders): analysis of customers orders from a pet food subscription business. 
+    * Part 1 [(R Notebook)](https://rpubs.com/leeolney/petfoodorders) : using supervised learning to identify key features that explain can pet treats purchases, wet food purchases and follow up wet food purchases
+    * Part 2 [(Jupyter Notebook)](https://github.com/leeolney/data_portfolio/blob/main/pet_food_orders/pet_food_orders_2.ipynb) : further testing of classification methods (with hyperparameter tuning) for predicting wet food purchase, including gradient boosting, extra trees, XGboost, AdaBoost etc. 
+    
+  * [**Churn Prediction exercise**](https://rpubs.com/leeolney/churnprediction): analysis of bank customers leaving credit card services. 
+    * EDA and Prediction [(R Notebook)](https://rpubs.com/leeolney/churnprediction) : identifying important features and evaluating the performance of logistic regression, decision tree, random forest and XGBoost models. 
     
   * [**Hotel booking cancellations**](https://github.com/leeolney/data-portfolio/tree/main/hotel_booking): analysis of hotel booking cancellations using the hotel booking demand dataset, focusing on identifying the key variables for predicting hotel booking cancellations.
     * Visualization and ML with logistic regression, decision tree, random forest, XGBoost [(Jupyter Notebook)](https://github.com/leeolney/data-portfolio/blob/main/hotel_booking/hotel_booking_p.ipynb)
@@ -56,7 +64,6 @@ This is a repository containing my data analytics projects for academic and self
   * [Product review sentiment classification (.R)](https://github.com/leeolney/data-portfolio/blob/main/micro_projects/m2_product_reviews.R): applying basic text preprocessing methods and sentiment analysis to classify dog products review.
   * [Association rules mining (.R)](https://github.com/leeolney/data-portfolio/blob/main/micro_projects/m1_arm_apriori.R): preparing transaction data, applying association mining with apriori algorithm and visualizing results. 
   * [Hyperparameters tuning (Jupyter Notebook)](https://github.com/leeolney/data-portfolio/blob/main/micro_projects/m3_strategy_games_p.ipynb): applying decision tree and random forest with hyperparameters tuning using grid search and random search methods.  
-  * [Churn Prediction exercise (R Notebook)](https://rpubs.com/leeolney/churnprediction): EDA and predicting bank customers leaving credit card services.
   * [Bicycle Collisions (Jupyter Notebook)](https://github.com/leeolney/data_portfolio/blob/main/micro_projects/bicycle_collisions.ipynb): exploring the SWITRS SQLite hosted database and using Fague SQL 
   
   
