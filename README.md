@@ -65,8 +65,8 @@ This is a repository containing my data analytics projects for academic and self
   * [Product review sentiment classification (.R)](https://github.com/leeolney/data-portfolio/blob/main/micro_projects/m2_product_reviews.R): applying basic text preprocessing methods and sentiment analysis to classify dog products review.
   * [Association rules mining (.R)](https://github.com/leeolney/data-portfolio/blob/main/micro_projects/m1_arm_apriori.R): preparing transaction data, applying association mining with apriori algorithm and visualizing results. 
   * [Hyperparameters tuning (Jupyter Notebook)](https://github.com/leeolney/data-portfolio/blob/main/micro_projects/m3_strategy_games_p.ipynb): applying decision tree and random forest with hyperparameters tuning using grid search and random search methods.  
-  * [Wind Turbines (.Rmd)](https://github.com/leeolney/data_portfolio/blob/main/micro_projects/wind_turbines.Rmd): visualizations and predicting turbines capacity.
-  * [Expeditions (.Rmd)](https://github.com/leeolney/data_portfolio/blob/main/micro_projects/expeditions.Rmd): visualizations and predicting success of expeditions.
+  * [Expeditions (.Rmd)](https://github.com/leeolney/data_portfolio/blob/main/micro_projects/expeditions.Rmd): visualizations and predicting success of expeditions using tidymodels package.
+  * [Wind Turbines (R Notebook)](https://rpubs.com/leeolney/windturbines): visualizations and predicting turbines capacity using tidymodels package.
   
   
 Contact information: 
