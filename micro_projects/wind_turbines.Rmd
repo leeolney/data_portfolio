@@ -1,17 +1,19 @@
 ---
-title: "Wind Turbines"
+title: "Wind Turbines - EDA and Modeling Exercise"
 date: "Dec 2020"
 output: html_notebook
 ---
 
 ### Dataset 
-TidyTuesday [Canadian Wind Turbines](https://github.com/rfordatascience/tidytuesday/blob/master/data/2020/2020-10-27/readme.md) from [Government of Canada](https://open.canada.ca/data/en/dataset/79fdad93-9025-49ad-ba16-c26d718cc070)
+[Canadian Wind Turbines](https://github.com/rfordatascience/tidytuesday/blob/master/data/2020/2020-10-27/readme.md) from [Government of Canada](https://open.canada.ca/data/en/dataset/79fdad93-9025-49ad-ba16-c26d718cc070), shared by TidyTuesday.
 
 ### Contents
 
 Section 1: Data visualization exercise
 
-Section 2: Modeling exercise (turbine capacity prediction)
+Section 2: Modeling exercise (turbine capacity prediction)   
+
+  * reference: [Julia Silge's tidymodels tutorial](https://juliasilge.com/blog/wind-turbine/) 
 
 
 ```{r setup, message=FALSE}
@@ -139,7 +141,6 @@ ggplot(wind_turbine2, aes(x=most_recent_com_date, y=annual_capacity_added)) + ge
 
 
 ### Section 2: Modeling
-* Using tidymodels package to tune fit and predict from decision tree model with [Julia Silge's tutorial](https://juliasilge.com/blog/wind-turbine/)
 
 #### Clean data
 ```{r}
