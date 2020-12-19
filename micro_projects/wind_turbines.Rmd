@@ -11,7 +11,7 @@ TidyTuesday [Canadian Wind Turbines](https://github.com/rfordatascience/tidytues
 
 Section 1: Data visualization exercise
 
-Section 2: Modeling exercise
+Section 2: Modeling exercise (turbine capacity prediction)
 
 
 ```{r setup, message=FALSE}

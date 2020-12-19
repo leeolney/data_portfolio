@@ -4,18 +4,17 @@ date: "Dec 2020"
 output: html_notebook
 ---
 
-**Practice goals**:  
-
-* learn [tidymodels](https://www.tidymodels.org/) modeling workflow using [Julia Siege's walkthrough](https://juliasilge.com/blog/himalayan-climbing/)   
-
-* customize ggplots  
-
-* visualize model results   
-
 **Dataset**: 
+
 TidyTuesday [Himalayan Climbing Expeditions](https://github.com/rfordatascience/tidytuesday/blob/master/data/2020/2020-09-22/readme.md) from [The Himalayan Database](https://www.himalayandatabase.com/), shared and cleaned by [Alex Cookson](https://twitter.com/alexcookson).
 
+**Notebook Contents**:
 
+* Section 1: Data visualization
+* Section 2: Predicting the outcome (success) of the expedition i.e., survived or not survived. 
+  + modeling workflow reference: [Julia Siege's walkthrough](https://juliasilge.com/blog/himalayan-climbing/)   
+
+   
 
 ### Load packages
 ```{r, message=FALSE}
@@ -45,7 +44,7 @@ peaks <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidy
 skimr::skim(members)
 ```
 
-### Section 1: EDA 
+### Section 1: Data visualisation
 
 ```{r,message=FALSE}
 #death of climbers compared to guides
@@ -206,7 +205,9 @@ members %>%
 
 
 
-## Section 2
+## Section 2: Prediction 
+
+
 ```{r}
 #clean data
 members_df <- members %>%
