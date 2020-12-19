@@ -22,7 +22,7 @@ This is a repository containing my data analytics projects for academic and self
     * EDA and modeling [(R Notebook)](https://rpubs.com/leeolney/churnprediction) : identifying important features and evaluating the performance of logistic regression, decision tree, random forest and XGBoost models. 
     
   * [**Hotel booking cancellations**](https://github.com/leeolney/data-portfolio/tree/main/hotel_booking): analysis of hotel booking cancellations using the hotel booking demand dataset, focusing on identifying the key variables for predicting hotel booking cancellations.
-    * Visualisation and classification - LR, DT, RF, XGBoost [(Jupyter Notebook)](https://github.com/leeolney/data-portfolio/blob/main/hotel_booking/hotel_booking_p.ipynb)
+    * Visualisation and modeling - LR, DT, RF, XGBoost [(Jupyter Notebook)](https://github.com/leeolney/data-portfolio/blob/main/hotel_booking/hotel_booking_p.ipynb)
     * Visualization [(R Notebook)](https://rpubs.com/leeolney/hbc1) 
     * Modeling - LR, DT, RF [(R Notebook)](https://rpubs.com/leeolney/673006)
 
@@ -49,15 +49,15 @@ This is a repository containing my data analytics projects for academic and self
     * [Crop Yield](https://rpubs.com/leeolney/crop): global key crops yield and nitrogen fertilizer usage.
     * [Phone Subscriptions](https://rpubs.com/leeolney/phone_subs): mobile and landline phone subscriptions from 1990 to 2017.
     * [Extinct Plants](https://rpubs.com/leeolney/extinct_plants): exploring extinct plants threat types and action taken by continent and year last seen.  
-    * [Washington Trails ](https://rpubs.com/leeolney/washington_trails): looking at dog friendly trails, ratings, trips, and features
+    * [Washington Trails ](https://rpubs.com/leeolney/washington_trails): looking at dog friendly trails, ratings, trips, and trail features.
     
    * **Tableau**
-      * [Middle East rig activities](https://public.tableau.com/profile/lee.olney#!/vizhome/MERigActivities/Dashboard1) for oilfield services regional business development and operations focusing on contracts
-      * [Worldwide rig activities](https://public.tableau.com/profile/lee.olney#!/vizhome/RigActivities/B1) for oilfield services international strategic accounts focusing on contracts 
+      * [Middle East rig activities](https://public.tableau.com/profile/lee.olney#!/vizhome/MERigActivities/Dashboard1) for oilfield services regional business development and operations focusing on contracts.
+      * [Worldwide rig activities](https://public.tableau.com/profile/lee.olney#!/vizhome/RigActivities/B1) for oilfield services international strategic accounts focusing on contracts.
       * [Rig count - North America](https://public.tableau.com/profile/lee.olney#!/vizhome/RigCountNorthAmerica/Dashboard1) looking at location, drill for, well depth, trajectory etc.  
-      * [Rig count - International](https://public.tableau.com/profile/lee.olney#!/vizhome/RigCount-International/Dashboard) looking at on drilling activities outside of North America 
+      * [Rig count - International](https://public.tableau.com/profile/lee.olney#!/vizhome/RigCount-International/Dashboard) looking at on drilling activities outside of North America.
       * [Hotel bookings dashboard](https://public.tableau.com/profile/lee.olney#!/vizhome/Hotelbookings_16021031357320/Board1): additional visualizations for hotel booking cancellation project. 
-      * [Survey constructs dashboard](https://public.tableau.com/profile/lee.olney#!/vizhome/M00648928_2/D3): visualizing primary data collected for hybrid machine-crowd project
+      * [Survey constructs dashboard](https://public.tableau.com/profile/lee.olney#!/vizhome/M00648928_2/D3): visualizing primary data collected for hybrid machine-crowd project.
       
 
 * **Micro projects**
