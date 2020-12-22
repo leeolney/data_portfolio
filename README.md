@@ -42,14 +42,15 @@ This is a repository containing my data analytics projects for academic and self
    
 
 * **Data visualization** 
-  * **R Notebook**
-    * [Australian Pets](https://rpubs.com/leeolney/auspets): animal intake and outcomes, and animal complaints throughout the years.
-    * [Steam Games](https://rpubs.com/leeolney/684334): looking at high owner games (>20,000) on Steam, developers, publishers and meta scores. 
-    * [European Energy](https://rpubs.com/leeolney/euenergy): conventional thermal, nuclear energy and thermal energy produced by European countries in 2018.  
-    * [Crop Yield](https://rpubs.com/leeolney/crop): global key crops yield and nitrogen fertilizer usage.
-    * [Phone Subscriptions](https://rpubs.com/leeolney/phone_subs): mobile and landline phone subscriptions from 1990 to 2017.
-    * [Extinct Plants](https://rpubs.com/leeolney/extinct_plants): exploring extinct plants threat types and action taken by continent and year last seen.  
-    * [Washington Trails ](https://rpubs.com/leeolney/washington_trails): looking at dog friendly trails, ratings, trips, and trail features.
+  * **R**
+    * [Australian Pets Notebook](https://rpubs.com/leeolney/auspets): animal intake and outcomes, and animal complaints throughout the years.
+    * [Steam Games Notebook](https://rpubs.com/leeolney/684334): looking at high owner games (>20,000) on Steam, developers, publishers and meta scores. 
+    * [European Energy Notebook](https://rpubs.com/leeolney/euenergy): conventional thermal, nuclear energy and thermal energy produced by European countries in 2018.  
+    * [Crop Yield Notebook](https://rpubs.com/leeolney/crop): global key crops yield and nitrogen fertilizer usage.
+    * [Phone Subscriptions Notebook](https://rpubs.com/leeolney/phone_subs): mobile and landline phone subscriptions from 1990 to 2017.
+    * [Extinct Plants Notebook](https://rpubs.com/leeolney/extinct_plants): exploring extinct plants threat types and action taken by continent and year last seen.  
+    * [Washington Trails Notebook](https://rpubs.com/leeolney/washington_trails): looking at dog friendly trails, ratings, trips, and trail features.
+    * [The Big Mac index (.R)](https://github.com/leeolney/data_portfolio/blob/main/R_visualization/the_big_mac_index.R): TidyTuesday week 52 submission, looking at the difference between adjusted price and local price in dollars across countries.
     
    * **Tableau**
       * [Middle East rig activities](https://public.tableau.com/profile/lee.olney#!/vizhome/MERigActivities/Dashboard1) for oilfield services regional business development and operations focusing on contracts.
@@ -67,6 +68,7 @@ This is a repository containing my data analytics projects for academic and self
   * [Hyperparameters tuning (Jupyter Notebook)](https://github.com/leeolney/data-portfolio/blob/main/micro_projects/m3_strategy_games_p.ipynb): applying decision tree and random forest with hyperparameters tuning using grid search and random search methods.  
   * [Expeditions (.Rmd)](https://github.com/leeolney/data_portfolio/blob/main/micro_projects/expeditions.Rmd): visualizations and predicting success of expeditions using tidymodels package.
   * [Wind Turbines (R Notebook)](https://rpubs.com/leeolney/windturbines): visualizations and predicting turbines capacity using tidymodels package.
+  * [Marketing Data Analysis (R Notebook)](https://rpubs.com/leeolney/marketingdata): data cleaning, statistical analysis and data visualizations.
   
   
 Contact information: 
