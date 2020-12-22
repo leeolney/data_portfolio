@@ -68,7 +68,7 @@ This is a repository containing my data analytics projects for academic and self
   * [Hyperparameters tuning (Jupyter Notebook)](https://github.com/leeolney/data-portfolio/blob/main/micro_projects/m3_strategy_games_p.ipynb): applying decision tree and random forest with hyperparameters tuning using grid search and random search methods.  
   * [Expeditions (.Rmd)](https://github.com/leeolney/data_portfolio/blob/main/micro_projects/expeditions.Rmd): visualizations and predicting success of expeditions using tidymodels package.
   * [Wind Turbines (R Notebook)](https://rpubs.com/leeolney/windturbines): visualizations and predicting turbines capacity using tidymodels package.
-  * [Marketing Data Analysis (R Notebook)](https://rpubs.com/leeolney/marketingdata): data cleaning, statistical analysis and data visualizations.
+  * [Marketing Data Analysis (R Notebook)](https://rpubs.com/leeolney/706932): data cleaning, statistical analysis and data visualizations.
   
   
 Contact information: 
