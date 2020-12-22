@@ -1,0 +1,313 @@
+---
+title: "Marketing Data"
+date: "Dec 2020"
+output: html_notebook
+---
+
+
+Dataset: [Marketing Data](https://www.kaggle.com/jackdaoud/marketing-data)
+
+Task: [Exploratory and Statistical Analysis Task](https://www.kaggle.com/jackdaoud/marketing-data/tasks?taskId=2986). 
+
+Contents: 
+
+* Section 1: Data cleaning and basic exploration
+* Section 2: Statistical analysis
+* Section 3: Data visualization
+
+
+### Load libraries
+```{r, message=FALSE, warning=FALSE}
+library(tidyverse)
+library(skimr)
+library(lubridate)
+library(reshape)
+library(Hmisc)
+library(corrplot)
+library(tibble)
+library(viridis)
+library(rstatix)
+library(wesanderson)
+library(ggsci)
+```
+
+### Import Data
+```{r}
+data = read.csv("marketing_data.csv",header=TRUE)
+dim(data)
+str(data)
+```
+
+### Section 1: Data cleaning and basic exploration
+```{r}
+# Format dates in Dt_Customer
+data$Dt_Customer = mdy(data$Dt_Customer)
+summary(data$Dt_Customer)
+
+# Drop special characters in Income 
+data$Income = gsub('[$]([0-9]+)[,]([0-9]+)','\\1\\2',data$Income)
+data$Income = as.numeric(data$Income)
+```
+
+* The earliest customer enrollment date in the dataset is 2012-07-30 and latest 2014-06-29
+
+```{r}
+# Missing data analysis
+skim(data)
+# Drop 24 obs without income 
+data = data %>% filter(!is.na(Income))
+dim(data)
+```
+
+* There are 24 observations without income specified. 
+
+```{r}
+# Unique levels in categorical variables
+summary(as.factor(data$Education))
+summary(as.factor(data$Marital_Status))
+summary(as.factor(data$Country))
+```
+
+* There are only 3 observations with country listed as _ME_
+* There are some questionable levels in the Marital Status level which will be handled in the following section after checking for duplicates. 
+
+```{r, message=FALSE, warning=FALSE}
+# Find duplicates
+length(unique(data$ID)) 
+datacopy = data %>% distinct(Income,Year_Birth, Kidhome, Teenhome, Recency, Dt_Customer, MntWines,MntFruits,MntMeatProducts,MntFishProducts,MntSweetProducts, MntGoldProds,NumDealsPurchases, NumWebPurchases, NumCatalogPurchases, NumStorePurchases, NumWebVisitsMonth, .keep_all=TRUE)
+dim(datacopy)
+
+# Recode levels after filtering duplicates 
+library(plyr)
+revalue(datacopy$Education,c("2n Cycle" = "Master")) -> datacopy$Education
+revalue(datacopy$Marital_Status,c("Alone" = "Single")) -> datacopy$Marital_Status
+revalue(datacopy$Marital_Status,c("Absurd" = "Together")) -> datacopy$Marital_Status
+revalue(datacopy$Country,c("ME" = "AUS")) -> datacopy$Country
+
+# Summary of unique levels after cleaning
+summary(as.factor(datacopy$Education))
+summary(as.factor(datacopy$Marital_Status))
+summary(as.factor(datacopy$Country))
+data = datacopy
+```
+
+* Although there are are no duplicates based on the ID variable, there are 205 duplicates found based on 17 numeric variables in the dataset.
+* Education variable: recoded _2n Cycle_ to _Masters_ in Education variable as they are equivalent levels according to [European Higher Education Area](http://www.ehea.info/page-three-cycle-system) 
+* Marital_Status variable: recoded _Alone_ and _Absurd_ based on the respective duplicates found.
+* Country: recoded _ME_ based on the respective duplicate found.
+* There are 4 Education levels, 5 Marital_Status levels and 6 Country levels after data cleaning. 
+
+```{r}
+# Change variables types
+data = data %>% mutate_at(vars(AcceptedCmp3,AcceptedCmp4,AcceptedCmp5,AcceptedCmp1,AcceptedCmp2,Response,Complain),list(factor))
+```
+
+```{r}
+# Outliers
+# Scale
+numeric_data = data %>% select(where(is.numeric))
+z_data = data.frame(scale(numeric_data))
+z_data$type = rownames(data)
+
+# Plot all numeric variables
+z_data %>% 
+  pivot_longer(cols=-type) %>% 
+  ggplot(aes(x = name, y = value)) +
+    geom_boxplot() +
+    theme_classic() +
+    expand_limits(x=12.6) + coord_flip()
+# Plot Income
+summary(data$Income)
+data %>% ggplot(aes(x=Year_Birth)) + geom_boxplot()
+
+# Drop obs with outliers in Income and Year_Birth 
+data = data %>% filter(!Year_Birth<1930) %>% filter(!Income==666666)
+dim(data)
+```
+
+* The boxplot of all numeric variables show that there are outliers in multiple features, in particular:
+  * Year_Birth variable contains 3 values before 1900 
+  * Income has an extreme outlier i.e. $666,666
+* Observations with the above-mentioned points are dropped, while the other outliers identified remains in the dataframe to avoid losing too much information. 
+
+
+
+```{r}
+# Feature Construction
+# Dt_Customer days since the epoch
+data$Dt_Customer_num = as.numeric(data$Dt_Customer)
+summary(data$Dt_Customer_num)
+
+# TotalPurchases
+data$TotalPurchases = data$NumWebPurchases + data$NumCatalogPurchases + data$NumStorePurchases + data$NumDealsPurchases
+summary(data$TotalPurchases)
+
+# Obs without purchases
+NoPurchases = data %>% filter(TotalPurchases==0) 
+head(NoPurchases)
+
+# TotalProducts
+data$TotalProducts = data$MntWines + data$MntFruits + data$MntMeatProducts + data$MntFishProducts + data$MntSweetProducts + data$MntGoldProds
+summary(data$TotalProducts)
+
+# Plot TotalPurchases and TotalProducts
+data %>% ggplot(aes(x=TotalPurchases,y=TotalProducts)) + geom_point(alpha=0.5)
+
+# Plot anomalies 
+data %>% filter(TotalPurchases==0) %>% ggplot(aes(x=TotalPurchases,y=TotalProducts)) + geom_count() + scale_y_continuous(limits=c(0.00,10.00)) + scale_size_continuous(breaks=round)
+
+# Drop anomalies 
+data = data %>% filter(TotalPurchases!=0)
+dim(data)
+
+```
+* There are 4 observations with 0 Total Purchases but have 5 or more Total Products
+
+### Section 2: Statistical analysis
+#### 2.1: What factors are significantly related to the number of store purchases
+```{r}
+# Regression
+data_21 = data[-c(1,8,30,31)]
+linearMod1 = lm(NumStorePurchases~ ., data = data_21)
+summary(linearMod1)
+```
+
+* The variables in the regression model are jointly significant as F-statistic p-value is <0.05.
+* The above regression model show that factors below are significantly related to the number of store purchases
+  + yearly household income
+  + number of children in  household
+  + amount spent on: wine, fruits, meat products, sweet products in the last 2 years
+  + number of purchases made: with a discount, through website, using a catalog
+  + number of website visits in the last month 
+  + acceptance of offer in: 2nd, 3rd, 5th campaign 
+  + date of customer's enrollment with the company
+
+#### 2.2: Does US fare significantly better than the Rest of the World in terms of total purchases? 
+```{r}
+# Label
+data22 = data
+data22$country2 = ifelse(data22$Country=="US","US","World")
+Hmisc::describe(data22$country2) 
+
+# Independent t test
+t.test(TotalPurchases ~ country2, data= data22, var.equal=TRUE,alternative="greater")
+```
+
+* The independent t-test results suggests that the total purchase of US is statistically greater than the rest of the world, as the p-value is <0.05. 
+
+#### 2.3: People who buy an above average amount on gold in the last 2 years have more in store purchase?
+```{r}
+# Label
+data23 = data
+data23$gold2 = ifelse(data23$MntGoldProds> mean(data23$MntGoldProds),"above_avg","not_above_avg")
+Hmisc::describe(data23$gold2)
+
+# Independent t test
+t.test(NumStorePurchases ~ gold2, data= data23, var.equal=TRUE,alternative="greater")
+```
+
+* The independent t-test results show that the mean of store purchases for people who buy an above average amount of gold in the last 2 years statistically greater than people who buy a below average amount in the past 2 years, as the p-values is <0.05.  
+
+
+#### 2.4: Do married PhD couples have a significant relation with amount spent on fish? What other factors are significantly related to amount spent on fish? 
+
+```{r}
+# Label: couples (either married or together)
+data24 = data %>% mutate(couples = ifelse(Marital_Status =="Married" | Marital_Status =="Together","1","0"))
+Hmisc::describe(data24$couples)
+# Label: PhD couples 
+data24$PhDcouples = ifelse(data24$couples =="1" & data24$Education =="PhD", "1","0")
+Hmisc::describe(data24$PhDcouples)
+```
+
+```{r}
+# Regression
+data24_model = data24[-c(1,3,4,8,30,31,32)]
+linearMod2 = lm(MntFishProducts~ ., data = data24_model)
+summary(linearMod2)
+```
+
+* The variables in the regression model are jointly significant as F-statistic p-value is <0.05.
+* The regression model suggests the following features have a significant relation to amount spent on fish products in the past 2 years: 
+  + PhD couples
+  + number of teens in customers' household
+  + amount spent on: fruits, meat products, sweet products, gold products in the last 2 years
+  + number of purchases made: with a discount, using a catalog, directly in stores
+  + number of website visits in the last month
+  + acceptance of offer in: 1st, 5th campaign
+  + date of customer's enrollment with the company
+
+#### 2.5: Is there a significant relationship between geographical regions and sucesss of a compaign?
+
+```{r}
+# Summary of groups
+data25 = data
+data25$Response = as.numeric(data25$Response)
+data25 %>% group_by(Country) %>% get_summary_stats(Response, type="mean_sd")
+# Compare means of group using ANOVA test
+res.aov = data25 %>% anova_test(Response ~ Country)
+res.aov
+```
+* The ANOVA test shows that the differences between the means of offer acceptance between regions are not statistically different, and we can conclude that there is no significant relationship between geographical regions and success of campaigns as the p-value is >0.05.  
+
+
+### Section 3: Data Visualizations
+#### 3.1: Which marketing campaign is most successful? 
+```{r}
+# Prepare data
+data3 = data %>% select (AcceptedCmp1,AcceptedCmp2,AcceptedCmp3,AcceptedCmp4, AcceptedCmp5)
+data3 = mutate_if(data3, is.factor, ~as.numeric(as.character(.x)))
+# Plot
+data3 %>% gather(Cmp, Outcome, AcceptedCmp1:AcceptedCmp5) %>% filter(Outcome>0) %>% group_by(Cmp) %>% tally() %>% ggplot(aes(x=reorder(Cmp,n), y=n, fill=Cmp)) + geom_col(width=0.7)  + geom_text(stat="identity",aes(label=n),hjust=-0.2,size=3.5) + scale_y_continuous(limits=c(0,180)) + coord_flip() + labs(y="", x="",title="Which marketing campaign is the most sucessful?", subtitle ="Number of customers who accepted the offer") + scale_fill_uchicago() + theme_classic() + theme(axis.ticks.x = element_blank(),axis.ticks.y = element_blank(), panel.grid.major.y = element_blank(), panel.grid.minor.x = element_blank(), legend.position= "none", axis.text.x=element_blank())
+```
+
+
+#### 3.2: What does the average customer look like for this company?
+```{r}
+# Average Year_Birth and Income 
+data %>% summarise(avg_Year_Birth = round(mean(Year_Birth)), avg_Income = round(mean(Income)), avg_Kidhome = round(mean(Kidhome)), avg_Teenhome= round(mean(Teenhome)))
+```
+
+```{r}
+# Income
+p1 = data %>% ggplot(aes(x=Income)) + geom_histogram(binwidth=5000, color="#1d3557",fill="#457b9d") + geom_vline(xintercept= 52002, color="#e63946",linetype="dashed") + scale_y_continuous(limits=c(0,180)) + annotate("text",label="Average = $52,002", x= 95000,y=170) + labs(x="", y="Customer Count", title="Yearly household income")
+# Year_Birth
+p2 = data %>% ggplot(aes(x=Year_Birth)) + geom_histogram(binwidth=5, color="#1d3557",fill="#457b9d") + geom_vline(xintercept= 1969, color="#e63946",linetype="dashed") + scale_y_continuous(limits=c(0,380)) + annotate("text",label="Average = 1969", x= 1985,y=350) + labs(title="Birth year", y="Customer Count",x="") 
+# Plot 
+ggarrange(p1,p2,ncol=2)
+```
+```{r}
+# Kidhome
+p3 = data %>% group_by(Kidhome) %>% tally() %>% ggplot(aes(x=factor(Kidhome),y=n, fill=n)) + geom_col(width=0.7) + scale_fill_viridis() + theme(legend.position="none") + labs(y="Customer count", x="", title="Number of children in household") + scale_y_continuous(limits=c(0,1300))
+# Teenhome
+p4 = data %>% group_by(Teenhome) %>% tally() %>% ggplot(aes(x=factor(Teenhome),y=n, fill=n)) + geom_col(width=0.7) + scale_fill_viridis() + theme(legend.position="none") + labs(y="Customer count", x="", title="Number of teens in household") + scale_y_continuous(limits=c(0,1300))
+# Marital Status 
+p5 = data %>% group_by(Marital_Status) %>% tally() %>% ggplot(aes(x=reorder(Marital_Status,n),y=n, fill=n)) + geom_col(width=0.7) + scale_fill_viridis() + theme(legend.position="none") + labs(y="Customer count", x="", title="Marital status") + theme(legend.position="none")
+# Education
+p6 = data %>% group_by(Education) %>% tally() %>% ggplot(aes(x=reorder(Education,n),y=n, fill=n)) + geom_col(width=0.7) + scale_fill_viridis() + theme(legend.position="none") + labs(y="Customer count", x="", title="Customer's educational level") + theme(legend.position="none")
+
+# Combined plot
+ggarrange(p3,p4,p5,p6, ncol=2, nrow=2) 
+```
+
+```{r}
+# Marital status and education level
+data %>% group_by(Marital_Status,Education) %>% tally(sort=T) %>% mutate(Marital_Edu = paste(Marital_Status, Education, sep="-")) %>% ggplot(aes(x=reorder(Marital_Edu,n), y=n)) + geom_point(color="#f77f00") + geom_segment(aes(x=Marital_Edu, xend=Marital_Edu, y=0, yend=n),color="#335c67") + coord_flip() + theme_light() + theme(panel.border=element_blank(),axis.ticks.x=element_blank(),axis.ticks.y=element_blank(), panel.grid.major.y=element_blank(), panel.grid.minor.x=element_blank()) + labs(y="Customer count", x="", title="Customers' marital status and education level")
+```
+
+
+#### 3.3: Which products are performing best?
+```{r}
+PrLabel = c("Fruits","Sweet","Fish","Gold","Meat","Wines")
+data %>% select(MntWines, MntFruits, MntMeatProducts, MntFishProducts, MntSweetProducts, MntGoldProds) %>% gather(Product, AmtSpent, MntWines:MntGoldProds) %>% group_by(Product) %>% tally(AmtSpent) %>% ggplot(aes(x=reorder(Product,n), y=n, fill=Product)) + geom_col() + geom_text(stat="identity",aes(label=n),hjust=-0.2,size=3) + scale_y_continuous(limits=c(0,700000)) + coord_flip() + scale_fill_uchicago() + theme_classic() + theme(axis.ticks.x = element_blank(),axis.ticks.y = element_blank(), panel.grid.major.y = element_blank(), panel.grid.minor.x = element_blank(), legend.position= "none", axis.text.x=element_blank(),axis.text.y=element_text(size=10)) + labs(y="Amount spent", x= "", title = "Which products are performing best?", subtitle = "Amount spent by customers in the last two years by product type") + scale_x_discrete(label= PrLabel)
+```
+
+
+#### 3.3: Which products are performing best?
+```{r}
+# Labels
+ChLabel = c("Catalog","Web","Store")
+# Plot
+data %>% select(NumWebPurchases, NumCatalogPurchases, NumStorePurchases) %>% gather(Channel, Purchases, NumWebPurchases:NumStorePurchases) %>% group_by(Channel) %>% tally(Purchases) %>% ggplot(aes(x=reorder(Channel,n), y=n, fill=Channel)) + geom_col(width=0.6) + geom_text(stat="identity",aes(label=n),hjust=-0.2,size=3.5) + scale_y_continuous(limits=c(0,13000)) + coord_flip() + scale_fill_uchicago() + theme_classic() + theme(axis.ticks.x = element_blank(),axis.ticks.y = element_blank(), panel.grid.major.y = element_blank(), panel.grid.minor.x = element_blank(), legend.position= "none", axis.text.x=element_blank(), axis.text.y=element_text(size=11)) + labs(y="Number of purchases", x= "", title = "Which channels are underperforming?", subtitle = "Number of purchases made through store, web and catalog") + scale_x_discrete(labels=ChLabel)
+```
+
