@@ -22,7 +22,7 @@ This is a repository containing my data analytics projects for academic and self
     * EDA and modeling [(R Notebook)](https://rpubs.com/leeolney/churnprediction) : identifying important features and evaluating the performance of logistic regression, decision tree, random forest and XGBoost models. 
     
   * [**Hotel booking cancellations**](https://github.com/leeolney/data-portfolio/tree/main/hotel_booking): analysis of hotel booking cancellations using the hotel booking demand dataset, focusing on identifying the key variables for predicting hotel booking cancellations.
-    * Visualisation and modeling - LR, DT, RF, XGBoost [(Jupyter Notebook)](https://github.com/leeolney/data-portfolio/blob/main/hotel_booking/hotel_booking_p.ipynb)
+    * Visualisation and modeling - LR, DT, RF, XGBoost [(Jupyter Notebook)](https://github.com/leeolney/data_portfolio/blob/main/hotel_booking/hotel_booking_p.ipynb)
     * Visualization [(R Notebook)](https://rpubs.com/leeolney/hbc1) 
     * Modeling - LR, DT, RF [(R Notebook)](https://rpubs.com/leeolney/673006)
 
