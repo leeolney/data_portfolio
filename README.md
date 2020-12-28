@@ -61,7 +61,7 @@ This is a repository containing my data analytics projects for academic and self
       * [Survey constructs dashboard](https://public.tableau.com/profile/lee.olney#!/vizhome/M00648928_2/D3): visualizing primary data collected for hybrid machine-crowd project.
       
 
-* **Micro projects**
+* **Other projects**
   * [Bicycle Collisions (Jupyter Notebook)](https://github.com/leeolney/data_portfolio/blob/main/micro_projects/bicycle_collisions.ipynb): exploring the SWITRS SQLite hosted database and using Fague SQL
   * [Product review sentiment classification (.R)](https://github.com/leeolney/data-portfolio/blob/main/micro_projects/m2_product_reviews.R): applying basic text preprocessing methods and sentiment analysis to classify dog products review.
   * [Association rules mining (.R)](https://github.com/leeolney/data-portfolio/blob/main/micro_projects/m1_arm_apriori.R): preparing transaction data, applying association mining with apriori algorithm and visualizing results. 
