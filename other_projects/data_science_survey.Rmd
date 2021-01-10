@@ -1,0 +1,281 @@
+---
+title: "Data Science Survey EDA"
+date: "Dec 2020"
+output: html_notebook
+---
+
+This notebook uses the [Data Science Survey on Kaggle](https://www.kaggle.com/kingabzpro/datascience-survey-on-kaggle) dataset to understand the tools, preferred language and commonly used algorithms of data science practitioners in various working fields. 
+
+
+### Load libraries 
+```{r, message=FALSE, warning=FALSE}
+library(tidyverse)
+library(ggdark)
+library(viridis)
+library(ggsci)
+library(skimr)
+```
+
+### Import data
+```{r}
+data = read.csv("kagglesurvey.csv")
+dim(data)
+head(data)
+```
+
+* 10153 survey responses in the dataset
+
+```{r}
+str(data)
+```
+
+Dataset features: 
+
+* Respondent: id
+* WorkToolsSelect: Tools used
+* LanguageRecommendationSelect: Preferred Language
+* EmployerIndustry: Working fields 
+* WorkAlgorithmsSelect: Algorithm commonly used by respondents 
+
+
+### Missing data 
+```{r}
+# convert blanks to NA
+data1 = mutate_all(data, list(~na_if(.,"")))
+# missing values 
+#sapply(data1, function(x) sum(is.na(x))) 
+skim(data1)
+# number of complete cases
+data1 %>% filter(complete.cases(.)) %>% tally()
+```
+
+```{r}
+# drop obs with blanks across all columns except for ID
+incomplete_df = data %>% filter(WorkToolsSelect=="", LanguageRecommendationSelect =="", EmployerIndustry =="", WorkAlgorithmsSelect =="") 
+cdf = anti_join(data, incomplete_df, by="Respondent")
+dim(cdf) 
+# drop obs with blanks in WorkToolsSelect, LanguageRecommendationSelect and WorkAlgorithmsSelect
+incomplete_df2 = cdf %>% filter(WorkToolsSelect=="", LanguageRecommendationSelect =="", WorkAlgorithmsSelect =="") 
+cdf2 = anti_join(cdf, incomplete_df2, by="Respondent")
+dim(cdf2)
+data = cdf2
+```
+
+* Out of 10153 observations, there are: 
+  + 5991 complete cases
+  + 9027 obs have no blanks across all columns except for ID
+    + of which, 8132 obs have no blanks in WorkToolsSelect, LanguageRecommendationSelect and WorkAlgorithmsSelect 
+* The following sections uses the subset containing 8132 obs. 
+
+
+### Tools used
+```{r}
+# spilt string then flatten  
+tools <- data  %>% 
+    mutate(work_tools =str_split(WorkToolsSelect,",") )  %>% 
+    unnest(work_tools)
+# number of tools listed
+length(unique(tools$work_tools))
+```
+
+#### User count of each tool
+
+```{r, fig.height=5, fig.width=5}
+# plot (by alphabetical order)
+uc_tool = tools %>% group_by(work_tools) %>% tally(sort=T) %>% mutate_if(is.character,list(~na_if(.,"")))
+uc_tool %>% mutate(work_tools = fct_rev(work_tools)) %>% ggplot(aes(x=work_tools, y=n, fill=n)) + geom_col() + coord_flip() + dark_theme_minimal() + scale_fill_viridis(option="cividis") + theme(legend.position="none") + labs(x="",y="User Count", title="User count of each tool")
+```
+
+* Tools with highest user count: Python > R > SQL > Jupyter notebooks 
+
+```{r, message=FALSE}
+# 5 most common tools by user count
+tools %>% group_by(work_tools) %>% tally(sort=T) %>% mutate_if(is.character,list(~na_if(.,""))) %>% top_n(5)
+# 5 least common tools by user count
+tools %>% group_by(work_tools) %>% tally(sort=T) %>% mutate_if(is.character,list(~na_if(.,""))) %>% top_n(-5)
+```
+
+* There are 49 unique tools listed in the dataset, and one NA level. 
+* Tools with the highest user count: Python > R > SQL > Jupyter notebooks > Tensorflow.
+* Least frequent tools by user count are DataRobot, Statistica, KNIME, Salfrod Systems and Angross. 
+
+#### Number of tools used per respondent
+
+```{r}
+# count of tools per respondent 
+data$wt_counts = lengths(strsplit(data$WorkToolsSelect,","))
+summary(data$wt_counts)
+
+# table 
+ctools = data %>% group_by(wt_counts) %>% tally() %>% mutate(prop=round(n/sum(n),3)) %>% as.data.frame()
+head(ctools)
+
+# plot
+data %>% group_by(wt_counts) %>% tally()  %>% ggplot(aes(x=wt_counts, y=n)) + geom_col() + dark_theme_minimal() + labs(x="Number of tools", y="Count", title="Number of tools listed by respondents")
+
+# count of tools per respondent (excluding blanks)
+data_tr= data %>% filter(wt_counts!=0)
+summary(data_tr$wt_counts)
+
+# table (exclude NA)
+ctools2 = data_tr %>% group_by(wt_counts) %>% tally(sort=T) %>% mutate(prop=round(n/sum(n),2)) %>% as.data.frame()
+head(ctools2)
+```
+
+* 177 out of 8132 respondents did not specify any tools
+* Of those that specified one or more tools (in WorkTools Select)
+  * median of 5 tools listed in a response
+  * around 51% of the respondents listed three to six work tools
+
+
+### Preferred language
+
+```{r}
+#plot
+data %>% group_by(LanguageRecommendationSelect) %>% tally() %>% mutate_if(is.character,list(~na_if(.,""))) %>% ggplot(aes(x=reorder(LanguageRecommendationSelect,n), y=n)) + geom_col(width=0.8) + dark_theme_minimal() + labs(x="", y="Count", title="Preferred language") + coord_flip()
+```
+
+
+```{r}
+length(unique(data$LanguageRecommendationSelect)) 
+# table (all levels)
+data %>% group_by(LanguageRecommendationSelect) %>% tally(sort=T) %>% mutate_if(is.character,list(~na_if(.,""))) %>% mutate(prop=round(n/sum(n),3))
+# table (excluding NA level)
+data %>% filter(LanguageRecommendationSelect !="") %>% group_by(LanguageRecommendationSelect) %>% tally(sort=T) %>% mutate(prop=round(n/sum(n),3))
+```
+
+* 14 levels in the variable LanguageReccomendationSelect (preferred language), including one NA level
+* 1598 out of 8132 respondents (19.7%) did not specify any language of preference
+* of those that specified languages: 62% prefer Python, 25.6% prefer R and  4.2% prefer SQL  
+
+
+### Working field
+```{r}
+# plot
+data %>% group_by(EmployerIndustry) %>% tally() %>% mutate_if(is.character,list(~na_if(.,""))) %>% ggplot(aes(x=reorder(EmployerIndustry,n), y=n)) + geom_col() + dark_theme_minimal() + labs(x="", y="Count", title="Working field") + coord_flip()
+```
+
+```{r}
+# summary table
+length(unique(data$EmployerIndustry)) 
+data %>% group_by(EmployerIndustry) %>% tally(sort=T) %>% mutate_if(is.character,list(~na_if(.,""))) %>% mutate(prop=round(n/sum(n),3))
+```
+
+* 29 out of 8132 respondents did not specify a working field 
+* Majority of the respondents (~46%) work in Technology, Academic or Financial fields. 
+
+### Count of algorithms per response
+```{r}
+data$alg_count = lengths(strsplit(data$WorkAlgorithmsSelect,","))
+summary(data$alg_count)
+# plot
+data %>% group_by(alg_count) %>% tally() %>% ggplot(aes(x=alg_count, y=n)) + geom_col(width=0.8) + dark_theme_minimal() + labs(x="Number of algorithms per response", y="Count")
+# summary table
+data %>% group_by(alg_count) %>% tally() %>% mutate(prop=round(n/sum(n),3))
+```
+
+* Median of 3 algorithms and maximum of 15 algorithms listed
+* 831 out of 8132 responses (10.2%) did not list any commonly used algorithms 
+* Around 62% of the respondents listed one to four commonly used algorithms 
+
+
+### Algorithms user counts 
+```{r}
+# spilt then flatten  
+alg <- data  %>% 
+    mutate(WorkAlgorithmsSelect =str_split(WorkAlgorithmsSelect,",") )  %>% 
+    unnest(WorkAlgorithmsSelect)
+# unique levels
+length(unique(alg$WorkAlgorithmsSelect))
+# table
+alg1 = alg %>% group_by(WorkAlgorithmsSelect) %>% tally(sort=T) %>% mutate_if(is.character,list(~na_if(.,""))) 
+alg1
+```
+
+```{r}
+# plot
+alg1 %>% ggplot(aes(x=reorder(WorkAlgorithmsSelect,n), y=n)) + geom_col(width=0.8) + dark_theme_minimal() + labs(x="", y="Count", title="Commonly used Algorithms") + coord_flip()
+```
+
+* 16 unique levels in the variable WorkAlgorithmsSelect, including one NA level
+* Three Most frequent commonly used algorithms listed are 
+  + Regression/Logistic Regression (n=4636)
+  + Decision Trees (n=3460)
+  + Random Forest (n=3378)
+* Least frequent commonly used algorithms listed by respondents is GANS (n=207)
+
+
+### Most frequent tool in each industry
+```{r}
+# proportion of most frequent tools in respective industry 
+tools %>% filter(EmployerIndustry != "") %>% filter(work_tools != "") %>% group_by(EmployerIndustry, work_tools) %>% tally() %>% mutate(prop=round(n/sum(n),3)) %>% arrange(desc(prop), .by_group=TRUE) %>% group_by(EmployerIndustry) %>% slice(1) %>% as.data.frame()
+```
+
+* Python is the most frequent tool used by respondents across the various working fields, except for Insurance and Non_profit where R is the most frequent tool used. 
+
+### Most frequent commonly used algorithms in each industry
+```{r}
+# proportion of most frequent algorithm in respective industry 
+alg %>% filter(EmployerIndustry != "") %>% filter(WorkAlgorithmsSelect != "") %>% group_by(EmployerIndustry, WorkAlgorithmsSelect) %>% tally() %>% mutate(prop=round(n/sum(n),3)) %>% arrange(desc(prop), .by_group=TRUE) %>% group_by(EmployerIndustry) %>% slice(1) %>% as.data.frame()
+```
+
+* Regression/Logistic regression is the most frequent algorithm commonly used across working fields, except for Military/Security field where Neural Network is the most frequent. 
+
+```{r}
+# LanguageRecommendationSelect by industry
+data %>% filter(EmployerIndustry != "") %>% filter(LanguageRecommendationSelect != "") %>% group_by(EmployerIndustry, LanguageRecommendationSelect) %>% tally() %>% mutate(prop=n/sum(n)) %>% arrange(desc(prop), .by_group=TRUE) %>% group_by(EmployerIndustry) %>% slice(1) %>% as.data.frame()
+
+# plot 
+data %>% filter(LanguageRecommendationSelect !="") %>% filter(EmployerIndustry !="") %>% ggplot(aes(x=LanguageRecommendationSelect, y= fct_rev(EmployerIndustry), color=LanguageRecommendationSelect)) + geom_point() + theme_minimal() + labs(y="",x="") + scale_color_simpsons() + theme(legend.position="none", plot.background = element_rect(fill = "white"), panel.border = element_blank(), panel.grid.major = element_blank(), panel.grid.minor = element_blank()) 
+
+```
+* Python, R and SQL are listed as respondents' preferred language across all(16) working fields. 
+
+### Porportion of R (work_tool) in each EmployerIndustry
+```{r}
+# table 
+tools %>% filter(EmployerIndustry != "") %>% filter(work_tools != "") %>% group_by(EmployerIndustry, work_tools) %>% tally() %>% mutate(prop=round(n/sum(n),3)) %>% arrange(desc(prop), .by_group=TRUE) %>% group_by(EmployerIndustry) %>% filter(work_tools=="R") %>% arrange(desc(prop))
+```
+The fields that have the highest proportion of R (work tool) are non-profit, insurance and government, respectively. 
+
+### Tools used in preferred languages groups R and Python
+```{r}
+# table 
+tools %>% filter(LanguageRecommendationSelect == "R") %>% group_by(work_tools) %>% tally(sort=T) %>% slice(1:10)
+# table
+tools %>% filter(LanguageRecommendationSelect == "Python") %>% group_by(work_tools) %>% tally(sort=T) %>% slice(1:10)
+```
+
+* There are some differences in most frequent tools used by the two groups 
+  + R (preferred language) group: most frequent work tools used are Python, SQL, Tableau and Jupyter Notebook, respectively
+  + Python (preferred language) group: most frequent work tools used are SQL, Jupyter Notebook, R and TensorFlow, respectively
+
+
+### How many respondents use both R and Python (work tools) ? and what other work tools these respondents use? 
+```{r}
+py_r = data %>% filter(str_detect(WorkToolsSelect, 'R')) %>% filter(str_detect(WorkToolsSelect, 'Python')) %>% mutate(pr = 1)
+# left join 
+py_r = py_r %>% select(Respondent, pr)
+data2 = left_join(data,py_r, by="Respondent") %>% mutate(pr = if_else(is.na(pr),0, pr))
+Hmisc::describe(as.factor(data2$pr))
+```
+
+* 3660 out of 8132 (45%) respondents listed both R and Python in work tools used. 
+
+```{r}
+tools2 <- data2  %>% 
+    mutate(work_tools =str_split(WorkToolsSelect,",") )  %>% 
+    unnest(work_tools)
+
+# get proportion  
+tools2 %>% filter(pr==1) %>% group_by(work_tools) %>% tally(sort=T) %>% filter(work_tools !="Python" & work_tools !="R") %>% mutate(prop_res = round(n/3660,3))
+```
+
+```{r}
+# plot proportion of 10 most frequent tools used by respondents that listed both R and Python (work tools)
+tools2 %>% filter(pr==1) %>% group_by(work_tools) %>% tally(sort=T) %>% mutate(prop_res = round(n/3660,2)) %>% filter(work_tools !="Python" & work_tools !="R") %>% slice(1:10) %>% ggplot(aes(x=reorder(work_tools,prop_res), y=prop_res, fill=work_tools)) + geom_col(width=0.5) + geom_text(stat="identity",aes(label=prop_res),hjust=-0.5,size=3,color="black") + coord_flip() + theme_minimal() + labs(y="Proportion",x="Work tools") + theme(panel.border = element_blank(), panel.grid.major = element_blank(), panel.grid.minor = element_blank(), legend.position="none") + scale_fill_simpsons() + scale_y_continuous(limits=c(0,1)) 
+```
+
+* SQL, Jupyter notebooks, Tensorflow, Tableau and Amazon web services are the most frequent other tools amongst those respondents that use both R and Python (tools). 
+
+
