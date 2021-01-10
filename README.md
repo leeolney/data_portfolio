@@ -69,7 +69,7 @@ This is a repository containing my data analytics projects for academic and self
   * [Hyperparameters tuning exercise(Jupyter Notebook)](https://github.com/leeolney/data_portfolio/blob/main/other_projects/m3_strategy_games_p.ipynb): applying decision tree and random forest with hyperparameters tuning using grid search and random search methods.  
   * [Expeditions (.Rmd)](https://github.com/leeolney/data_portfolio/blob/main/other_projects/expeditions.Rmd): visualizations and predicting success of expeditions using tidymodels package.
   * [Wind Turbines (R Notebook)](https://rpubs.com/leeolney/windturbines): visualizations and predicting turbines capacity using tidymodels package.
-  * [Data Science Survey Data (R Notebook)](https://rpubs.com/leeolney/datasciencesurvey): to understand the tools, preferred language and commonly used algorithms of data science practitioners in various working fields. 
+  * [Data Science Survey Data (R Notebook)](https://rpubs.com/leeolney/datasciencesurvey): exploratory analysis to understand the tools, preferred language and commonly used algorithms of data science practitioners in various working fields. 
   * [Marketing Data Analysis (R Notebook)](https://rpubs.com/leeolney/marketingdatav2): exploratory and statistical analysis looking at customers, products, campaigns and channels.  
   * [Job changes (.ipynb, Google Collab)](https://github.com/leeolney/data_portfolio/blob/main/job_changes.ipynb): exploratory analysis and predicting which candidates will move on to a new job. 
   * [Women entrepreneurship (.ipynb, Google Collab)](https://github.com/leeolney/data_portfolio/blob/main/women_entrepreneurship.ipynb): data visualizations and non-parameteric testing. 
