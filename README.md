@@ -51,7 +51,7 @@ This is a repository containing my data analytics projects for academic and self
     * [Extinct Plants Notebook](https://rpubs.com/leeolney/extinct_plants): exploring extinct plants threat types and action taken by continent and year last seen.  
     * [Washington Trails Notebook](https://rpubs.com/leeolney/washington_trails): looking at dog friendly trails, ratings, trips, and trail features.
     * [The Big Mac index (.R)](https://github.com/leeolney/data_portfolio/blob/main/R_visualization/the_big_mac_index.R): TidyTuesday 2020 week 52 submission, looking at the difference between adjusted price and local price in dollars across countries.
-    * [Tansit Project Costs Notebook](https://rpubs.com/leeolney/transitprojects): TidyTuesday 2021 week 2 data visualisation exercise and submission 
+    * [Transit Project Costs Notebook](https://rpubs.com/leeolney/transitprojects): TidyTuesday 2021 week 2 data visualization exercise and submission, looking into the transit projects differences in cost/km, cost/station and length between stations. 
     
    * **Tableau**
       * [Middle East rig activities](https://public.tableau.com/profile/lee.olney#!/vizhome/MERigActivities/Dashboard1) for oilfield services regional business development and operations focusing on contracts.
