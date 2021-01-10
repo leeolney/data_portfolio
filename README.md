@@ -50,7 +50,8 @@ This is a repository containing my data analytics projects for academic and self
     * [Phone Subscriptions Notebook](https://rpubs.com/leeolney/phone_subs): mobile and landline phone subscriptions from 1990 to 2017.
     * [Extinct Plants Notebook](https://rpubs.com/leeolney/extinct_plants): exploring extinct plants threat types and action taken by continent and year last seen.  
     * [Washington Trails Notebook](https://rpubs.com/leeolney/washington_trails): looking at dog friendly trails, ratings, trips, and trail features.
-    * [The Big Mac index (.R)](https://github.com/leeolney/data_portfolio/blob/main/R_visualization/the_big_mac_index.R): TidyTuesday week 52 submission, looking at the difference between adjusted price and local price in dollars across countries.
+    * [The Big Mac index (.R)](https://github.com/leeolney/data_portfolio/blob/main/R_visualization/the_big_mac_index.R): TidyTuesday 2020 week 52 submission, looking at the difference between adjusted price and local price in dollars across countries.
+    * [Tansit Project Costs Notebook](https://rpubs.com/leeolney/transitprojects): TidyTuesday 2021 week 2 data visualisation exercise and submission 
     
    * **Tableau**
       * [Middle East rig activities](https://public.tableau.com/profile/lee.olney#!/vizhome/MERigActivities/Dashboard1) for oilfield services regional business development and operations focusing on contracts.
@@ -68,7 +69,10 @@ This is a repository containing my data analytics projects for academic and self
   * [Hyperparameters tuning exercise(Jupyter Notebook)](https://github.com/leeolney/data_portfolio/blob/main/other_projects/m3_strategy_games_p.ipynb): applying decision tree and random forest with hyperparameters tuning using grid search and random search methods.  
   * [Expeditions (.Rmd)](https://github.com/leeolney/data_portfolio/blob/main/other_projects/expeditions.Rmd): visualizations and predicting success of expeditions using tidymodels package.
   * [Wind Turbines (R Notebook)](https://rpubs.com/leeolney/windturbines): visualizations and predicting turbines capacity using tidymodels package.
-  * [Marketing Data Analysis (R Notebook)](https://rpubs.com/leeolney/marketingdatav2): data cleaning, statistical analysis and data visualizations.
+  * [Data Science Survey Data (R Notebook)](https://rpubs.com/leeolney/datasciencesurvey): to understand the tools, preferred language and commonly used algorithms of data science practitioners in various working fields. 
+  * [Marketing Data Analysis (R Notebook)](https://rpubs.com/leeolney/marketingdatav2): exploratory and statistical analysis looking at customers, products, campaigns and channels.  
+  * [Job changes (.ipynb, Google Collab)](https://github.com/leeolney/data_portfolio/blob/main/job_changes.ipynb): exploratory analysis and predicting which candidates will move on to a new job. 
+  * [Women entrepreneurship (.ipynb, Google Collab)](https://github.com/leeolney/data_portfolio/blob/main/women_entrepreneurship.ipynb): data visualizations and non-parameteric testing. 
   
   
 Contact information: 
