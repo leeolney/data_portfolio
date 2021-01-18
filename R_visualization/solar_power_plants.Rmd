@@ -1,0 +1,613 @@
+---
+title: "Solar Power Plants"
+date: "2021-01"
+output: html_notebook
+---
+
+## Exploratory Analysis
+
+This notebook uses the [Solar Power Generation Data](https://www.kaggle.com/anikannal/solar-power-generation-data) containing data of two solar power plant, where each plant has a power generation dataset and a sensor readings dataset. 
+
+The objective of this exercise is to use various data visualization techniques to explore the power generation and sensor readings of two solar power plants and their differences. The practice goals include data wrangling using data.table package and plotting against time/date/datetime. 
+
+Reference notebooks:  
+  * [Desc. Analytics of Solar Panels with R and Plotly](https://www.kaggle.com/espressodoppio/desc-analytics-of-solar-panels-with-r-and-plotly)   
+  * [Ensemble learning lib: MLens (Python) ](https://www.kaggle.com/vipulgote4/ensemble-learning-lib-mlens-99-accuracy)     
+  * [How to manage a solar power plant (Python)](https://www.kaggle.com/virosky/how-to-manage-a-solar-power-plant)     
+  * [Solar Power Machine Learning I (Python)](https://www.kaggle.com/espressodoppio/desc-analytics-of-solar-panels-with-r-and-plotly)     
+  * [Solar_power_plant_analysis (Python)](https://www.kaggle.com/srinuti/solar-power-plant-analysis)     
+
+
+### Load libraries
+```{r message=FALSE}
+library(janitor)
+library(ggpubr)
+library(lubridate)
+library(tidyverse)
+library(data.table)
+library(PerformanceAnalytics)
+library(corrplot)
+```
+
+```{r}
+view(data$p1_gen)
+```
+
+
+### Import data
+```{r}
+# load all data
+load_p1_gen <- function() {
+    data <- fread("Plant_1_Generation_Data.csv")
+    return(data)
+}
+load_p1_weather <- function() {
+    data <- fread("Plant_1_Weather_Sensor_Data.csv")
+    return(data)
+}
+load_p2_gen <- function() {
+    data <- fread("Plant_2_Generation_Data.csv")
+    return(data)
+}
+load_p2_weather <- function() {
+    data <- fread("Plant_2_Weather_Sensor_Data.csv")
+    return(data)
+}
+
+
+# load data in a list 
+load <- function() {
+    data <- list()
+    data$p1_gen <- load_p1_gen()
+    data$p1_weather <- load_p1_weather()
+    data$p2_gen <- load_p2_gen()
+    data$p2_weather <- load_p2_weather()
+    return(data)
+}
+data <- load()
+```
+
+
+### Data cleaning
+```{r}
+# clean names 
+names(data$p1_gen) <- tolower(names(data$p1_gen))
+names(data$p1_weather) <- tolower(names(data$p1_weather))
+names(data$p2_gen) <- tolower(names(data$p2_gen))
+names(data$p2_weather) <- tolower(names(data$p2_weather))
+
+# parse datetime and factors 
+clean_p1_gen <- function(data) {
+    data[, date_time := dmy_hm(date_time)]
+    data[, plant_id := as.factor(plant_id)]
+    data[, source_key := as.factor(source_key)]
+}
+
+# parse datetime and factors 
+clean_data <- function(data) {
+    data[, date_time := as_datetime(date_time)]
+    data[, plant_id := as.factor(plant_id)]
+    data[, source_key := as.factor(source_key)]
+}
+
+# clean all data
+clean <- function(data) {
+    data$p1_gen <- clean_p1_gen(data$p1_gen)
+    data$p1_weather <- clean_data(data$p1_weather)
+    data$p2_gen <- clean_data(data$p2_gen)
+    data$p2_weather <- clean_data(data$p2_weather)
+    return(data)
+}
+
+clean_data = clean(data)
+```
+
+```{r}
+summarise = function(data){lapply(data,summary)}
+summarise(clean_data)
+```
+
+```{r}
+# drop singular variables
+drop_sv <- function(data) {
+    data$p1_gen[, plant_id := NULL]
+    data$p1_weather[, plant_id := NULL][, source_key := NULL]
+    data$p2_gen[, plant_id := NULL]
+    data$p2_weather[, plant_id := NULL][, source_key := NULL]
+    return(data)
+}
+
+data2 = drop_sv(clean_data)
+```
+
+
+### Pairplot
+```{r, warning=FALSE}
+pairplot <- function(data2) {
+  data2[, date_time := NULL]
+  chart.Correlation(data2[,-1], histogram=TRUE, method=c("spearman"))
+}
+
+pairplot(data2$p1_gen)
+```
+
+### Distribution
+```{r}
+# function for generation distribution
+plt_gen_dist <- function(data) {
+    x <- list(
+      title = "Value"
+    )
+    y <- list(
+      title = "Count"
+    )
+
+    ac_power <- ggplot(data, aes(x = ac_power)) + geom_histogram(alpha=0.7, fill="#457b9d")
+    dc_power <- ggplot(data, aes(x = dc_power)) + geom_histogram(alpha=0.7, fill="#457b9d")
+    daily_yield <- ggplot(data, aes(x = daily_yield)) + geom_histogram(alpha=0.7, fill="#457b9d")
+    total_yield <- ggplot(data, aes(x =  total_yield)) + geom_histogram(alpha=0.7, fill="#457b9d")
+
+    ggarrange(ac_power, dc_power, daily_yield, total_yield, nrow = 2, ncol= 2)
+}
+
+#function for weather distribution
+plt_wx_dist <- function(data) {
+    x <- list(
+      title = "Value"
+    )
+    y <- list(
+      title = "Number of occurences"
+    )
+
+    ambient <- ggplot(data, aes(x= ambient_temperature)) + geom_histogram(alpha=0.7, fill="#faa307") 
+    module <- ggplot(data, aes(x= module_temperature)) + geom_histogram(alpha=0.7, fill="#faa307")
+    irradiation <- ggplot(data, aes(x= irradiation)) + geom_histogram(alpha=0.7, fill="#faa307")
+
+    ggarrange(ambient,  irradiation, module, nrow=2, ncol=2)
+}
+```
+
+#### Plant 1
+```{r, message=FALSE}
+fig1a = plt_gen_dist(data2$p1_gen)
+annotate_figure(fig1a, top = text_grob("Plant 1: Power generation", size = 12))
+fig1b = plt_wx_dist(data2$p1_weather)
+annotate_figure(fig1b, top = text_grob("Plant 1: Sensor readings ", size = 12))
+```
+
+#### Plant 2
+```{r, message=FALSE}
+fig2a = plt_gen_dist(data2$p2_gen)
+annotate_figure(fig2a, top = text_grob("Plant 2: Power generation", size = 12))
+fig2b = plt_wx_dist(data2$p2_weather)
+annotate_figure(fig2b, top = text_grob("Plant 2: Sensor readings ", size = 12))
+```
+
+### Daily summed yield
+```{r, message=FALSE}
+# function
+get_daily_summed_yield <- function(data) {
+    data[, day := date(date_time)]
+    data[, .(daily_yield_sum = sum(daily_yield)), by = day]  
+}
+
+plt_daily_yield <- function(data) {
+    x <- list(
+      title = "Day"
+    )
+    y <- list(
+      title = "Summed daily yield"
+    )
+    plot <- ggplot(data, aes(x=day,y=daily_yield_sum)) + geom_point() + geom_smooth(method=lm, se=FALSE)
+    plot
+}
+
+daily_summed_yield_p1 <- get_daily_summed_yield(data2$p1_gen)
+daily_summed_yield_p2 <- get_daily_summed_yield(data2$p2_gen)
+fig3a = plt_daily_yield(daily_summed_yield_p1) + labs(title="Plant 1: Daily summed yield")
+fig3b = plt_daily_yield(daily_summed_yield_p2) + labs(title="Plant 2: Daily summed yield")
+ggarrange(fig3a,fig3b, ncol=2, nrow=1)
+```
+
+
+### Data preparation
+```{r}
+# plant 1
+# reduced_p1_gen 
+reduced_p1_gen = data2$p1_gen
+reduced_p1_gen2 = reduced_p1_gen[,lapply(.SD, sum, na.rm=TRUE), by=list(date_time), .SDcols=c("dc_power","ac_power","daily_yield","total_yield")] 
+
+reduced_p1_gen2[,date:=date(date_time)]
+reduced_p1_gen2[,time:=as.ITime(date_time)]
+reduced_p1_gen2$time = as.POSIXct(strptime(reduced_p1_gen2$time, format="%H:%M:%S"))
+
+# merge reduced_p1_gen and p1_wx
+p1_wx= data2$p1_weather
+
+setkey(p1_wx,date_time)
+setkey(reduced_p1_gen2,date_time)
+p1= p1_wx[reduced_p1_gen2, nomatch=0]
+dim(p1)
+```
+
+```{r}
+# plant 2
+# merge plant 2 data
+reduced_p2_gen = data2$p2_gen
+reduced_p2_gen2 = reduced_p2_gen[,lapply(.SD, sum, na.rm=TRUE), by=list(date_time), .SDcols=c("dc_power","ac_power","daily_yield","total_yield")]
+
+reduced_p2_gen2[,date:=date(date_time)]
+reduced_p2_gen2[,time:=as.ITime(date_time)]
+reduced_p2_gen2$time = as.POSIXct(strptime(reduced_p2_gen2$time, format="%H:%M:%S"))
+
+# merge p2 gen with p2 wx 
+p2_wx= data2$p2_weather
+setkey(p2_wx,date_time)
+setkey(reduced_p2_gen2,date_time)
+p2= p2_wx[reduced_p2_gen2, nomatch=0]
+dim(p2)
+```
+
+### Plant 1
+#### P1: dc power
+```{r, warning=FALSE, fig.height=2.5, fig.width=5}
+# dc_power (time)
+xlabel= c("00:00:00","06:00:00","12:00:00","18:00:00")
+dc1a = ggplot(p1, aes(x=time, y=dc_power)) + geom_point(size=0.2, color="#457b9d",alpha=0.7) + stat_summary(aes(y=dc_power,group=1), fun.y=mean, color="red",geom="line",group=1) + scale_x_datetime(date_labels="%H:%S")
+# dc_power (daily)
+dc1b = ggplot(p1, aes(x=date, y=dc_power)) + geom_col(fill="#457b9d") + theme(axis.text.x=element_text(angle=45))
+ggarrange(dc1a, dc1b, labels = c("a", "b"), ncol=2, nrow=1)
+```
+* DC power
+  + plant 1 produces power from ~06.00 to ~18.00   
+  + maximum power on May 25 2020
+
+
+#### P1: daily yield
+```{r, warning=FALSE, fig.height=2.5, fig.width=5}
+# daily_yield
+dy1a =ggplot(p1, aes(x=time, y=daily_yield)) + geom_point(size=0.2, color="#457b9d",alpha=0.5) + stat_summary(aes(y=daily_yield,group=1), fun.y=mean, color="red",geom="line",group=1) + scale_x_datetime(date_labels="%H:%S")
+# daily_yield facet
+dy1b = ggplot(p1, aes(x=time, y=daily_yield)) + geom_point(size=0.2) + facet_wrap(~date) + scale_y_continuous(breaks=c(0, 100000, 200000)) + theme(axis.text.x=element_blank()) 
+ggarrange(dy1a,dy1b,labels = c("a", "b"), nrow=1, ncol=2)
+```
+
+```{r, warning=FALSE, fig.height=2.5, fig.width=5}
+# boxplot
+dy1c = ggplot(p1, aes(x=factor(date),y=daily_yield)) + geom_boxplot() + theme_bw() + theme(axis.text.x=element_text(angle=90)) + labs(x="date")
+# barplot
+dy1d = ggplot(p1, aes(x=factor(date),y=daily_yield)) + geom_col(fill="#457b9d") + theme_bw() + theme(axis.text.x=element_text(angle=90)) + labs(x="date")
+ggarrange(dy1c,dy1d, labels = c("c", "d"),nrow=1, ncol=2 )
+```
+* Daily yield
+  + daily yield decreases after 18.00.   
+  + there are missing data on some dates for example, 2020-05-20. 
+  + daily yield changes daily, and there are no outliers observed. 
+  + the sum of daily yield changes daily.
+
+#### P1: ambient temperature 
+```{r, warning=FALSE, fig.height=2.5, fig.width=5}
+# ambient temp (time)
+at1a = ggplot(p1, aes(x=time, y=ambient_temperature)) + geom_point(size=0.2, color="#457b9d",alpha=0.5) + stat_summary(aes(y=ambient_temperature,group=1), fun.y=mean, color="red",geom="line",group=1) + scale_x_datetime(date_labels="%H:%S")
+# boxplot
+at1b = ggplot(p1, aes(x=factor(date),y=ambient_temperature)) + geom_boxplot() + theme_bw() + theme(axis.text.x=element_text(angle=90)) + labs(x="date", y="temperature (°C)")
+# lineplots
+dat = p1[,.(mean_at=mean(ambient_temperature)), .(date)]
+at1c = ggplot(dat, aes(x=date, y=mean_at)) + geom_line(color="#457b9d") + labs(y="mean_ambient_temperature (°C)")
+
+cols= c('mean_at')
+dat[,(paste0(cols, "_pctChange")) := lapply(.SD, function(col){ 
+      (col-shift(col,1,type = "lag"))/shift(col,1,type = "lag")
+  }), .SDcols=cols]
+at1d = ggplot(dat, aes(x=date, y=mean_at_pctChange)) + geom_line(color="#faa307") + scale_y_continuous(labels=scales::percent) 
+
+ggarrange(at1a,at1b, labels = c("a", "b"), ncol=2, nrow=1)
+ggarrange(at1c,at1d, labels = c("c", "d"),ncol=2, nrow=1)
+```
+
+* Ambient temperature
+  + the ambient temperature of records in May is higher than June. 
+  + the range of ambient temperature percentage change is larger in May than June. 
+
+
+```{r}
+# time series plot
+# sesonality 7 days
+ts_at = ts(dat$mean_at, frequency = 7)
+stl_at = stl(ts_at, "periodic")
+plot(stl_at)
+```
+
+ 
+
+#### P1: module temperature
+```{r, warning=FALSE, fig.height=2.5, fig.width=5}
+mt1a = ggplot(p1, aes(x=time, y=module_temperature)) + geom_point(size=0.2, color="#457b9d",alpha=0.7) + stat_summary(aes(y=module_temperature,group=1), fun.y=mean, color="red",geom="line",group=1) + scale_x_datetime(date_labels="%H:%S")
+# boxplot
+mt1b = ggplot(p1, aes(x=factor(date),y=module_temperature)) + geom_boxplot() + theme_bw() + theme(axis.text.x=element_text(angle=90)) + labs(x="date", y="temperature (°C)")
+# lineplots
+dmt = p1[,.(mean_mt=mean(module_temperature)), .(date)]
+mt1c = ggplot(dmt, aes(x=date, y=mean_mt)) + geom_line(color="#457b9d") + labs(y="mean_ambient_temperature (°C)")
+
+cols= c('mean_mt')
+dmt[,(paste0(cols, "_pctChange")) := lapply(.SD, function(col){ 
+      (col-shift(col,1,type = "lag"))/shift(col,1,type = "lag")
+  }), .SDcols=cols]
+mt1d = ggplot(dmt, aes(x=date, y=mean_mt_pctChange)) + geom_line(color="#faa307") + scale_y_continuous(labels=scales::percent) 
+
+ggarrange(mt1a,mt1b,labels = c("a", "b"), ncol=2, nrow=1)
+ggarrange(mt1c,mt1d, labels = c("c", "d"),ncol=2, nrow=1)
+```
+
+* there are four dates with outliers
+
+#### P1: irradiation 
+```{r, warning=FALSE}
+# plot
+ir1a = ggplot(p1, aes(x=time, y=irradiation)) + geom_point(size=0.2, color="#457b9d",alpha=0.7) + stat_summary(aes(y=irradiation,group=1), fun.y=mean, color="red",geom="line",group=1) + scale_x_datetime(date_labels="%H:%S")
+# boxplot
+ir1b = ggplot(p1, aes(x=factor(date),y=irradiation)) + geom_boxplot() + theme_bw() + theme(axis.text.x=element_text(angle=90)) + labs(x="date")
+# line plot
+irr = p1[,.(sum_irr=sum(irradiation)), .(date)]
+ir1c = ggplot(irr, aes(x=date, y=sum_irr)) + geom_line(color="#457b9d")
+
+ggarrange(ir1b,                                                 
+          ggarrange(ir1a, ir1c, ncol = 2), nrow = 2 
+          ) 
+```
+
+
+#### P1: spearman correlation
+
+```{r}
+colnames(p1)
+```
+
+```{r, warning=FALSE}
+# delta temperature
+p1$delta_temperature = abs(p1$ambient_temperature-p1$module_temperature)
+summary(p1$delta_temperature)
+
+# correlation
+p1_c = p1[,-c(1,9,10)]
+chart.Correlation(p1_c, histogram=TRUE, method=c("spearman"))
+```
+
+* daily yield and total yield are not correlated with other features
+
+```{r, warning=FALSE, message=FALSE}
+# correlation heatmap without daily_yield and total_yield
+# function
+cors <- function(df) {
+ M <- Hmisc::rcorr(as.matrix(df),type=c("spearman")) 
+ Mdf <- map(M, ~data.frame(.x)) 
+ return(Mdf) }
+
+formatted_cors <- function(df){
+ cors(df) %>%
+ map(~rownames_to_column(.x, var="measure1")) %>%
+ map(~pivot_longer(.x, -measure1, "measure2")) %>% 
+ bind_rows(.id = "id") %>%
+ pivot_wider(names_from = id, values_from = value) %>%
+ mutate(sig_p = ifelse(P < .05, T, F), p_if_sig = ifelse(P <.05, P, NA), r_if_sig = ifelse(P <.05, r, NA)) }
+
+# plot
+p1_c = p1[,-c(1,7,8,9,10)]
+
+formatted_cors(p1_c) %>% 
+ ggplot(aes(measure1, measure2, fill=r, label=round(r_if_sig,3))) +
+ geom_tile() + 
+ labs(x = NULL, y = NULL, fill = "Spearman's\nCorrelation", title="Plant 1: Correlations", subtitle="without daily_yield and total_yield") + 
+ scale_fill_gradient2(mid="#e0fbfc",low="#ee6c4d",high="#293241", limits=c(0,1)) +
+ geom_text(color="white") +
+ scale_x_discrete(expand=c(0,0)) + 
+ scale_y_discrete(expand=c(0,0)) + 
+ theme(axis.text.x=element_text(angle=90))
+```
+
+#### P1: reg plots
+```{r, warning=FALSE, message=FALSE, fig.height=3.5, fig.width=5}
+# reg plot
+p1a = ggscatter(p1, x="dc_power",y="ac_power", add="reg.line", color="#8F3931FF",alpha=0.5) + theme_minimal()
+p1b =ggscatter(p1, x="ambient_temperature",y="dc_power", add="reg.line", color="#767676FF",alpha=0.5) + theme_minimal()
+p1c=ggscatter(p1, x="module_temperature",y="dc_power", add="reg.line", color="#FFA319FF",alpha=0.5) + theme_minimal()
+p1d =ggscatter(p1, x="irradiation",y="dc_power", add="reg.line", color="#58593FFF",alpha=0.5) + theme_minimal()
+p1e =ggscatter(p1, x="delta_temperature",y="dc_power", add="reg.line", color="#155F83FF",alpha=0.5) + theme_minimal()
+p1f =ggscatter(p1, x="delta_temperature",y="irradiation", add="reg.line", color="#C16622FF",alpha=0.5) + theme_minimal()
+
+ggarrange(p1a, p1b, p1c, p1d, p1e, p1f, labels= c("a","b","c","d","e","f"),ncol=3, nrow=2)
+```
+* Plant 1 Reg plots
+  + (a) inverters convert dc power to ac power linearly.  
+  + (b) dc power increases non linearly with ambient temperature.  
+  + (c) some linearity between dc power production and module temperature.  
+  + (d) dc power increases with irradiation.  
+  + (e) dc power is influenced by delta temperature.    
+  + (f) some linearity between irradiation and delta temperature.      
+
+* Plant 1 summary
+  + yield (daily_yield and total_yield) is not correlated to ac/dc power, temperature and irradiation.   
+  + transfer function between ac and dc power is linear.     
+  + dc power is influenced by ambient temperature, module temperature, irradiation and heat transfer between air and module.     
+  + all (n=22) inverters of Plant 1 lost around 90% of the dc power during conversion. 
+
+
+### Plant 1 vs. Plant 2
+
+```{r, warning=FALSE, message=FALSE, fig.height=3.5, fig.width=5}
+
+# dc power (daily)
+pp1= ggplot(data=reduced_p1_gen2) + geom_col(aes(x=date, y=dc_power, fill='plant 1')) + geom_col(data=reduced_p2_gen2, aes(x=date, y=dc_power,fill='plant 2')) + scale_fill_manual(values=c("#457b9d","#faa307")) + labs(fill="", title= "DC power (daily)") + theme(title =element_text(size=9))
+
+# dc power (time)
+pp2 = ggplot(data=reduced_p1_gen2) + geom_point(aes(x=time, y=dc_power, color='plant 1'),size=0.3,alpha=0.6) + geom_point(data=reduced_p2_gen2, aes(x=time, y=dc_power,color='plant 2'), size=0.3,alpha=0.9) + scale_color_manual(values=c("#457b9d","#faa307")) + labs(fill="", title="AC power (time)") + scale_x_datetime(date_label="%H:%M:%S")+ theme(title =element_text(size=9))
+
+# ac power (daily)
+pp3= ggplot(data=reduced_p1_gen2) + geom_col(aes(x=date, y=ac_power, fill='plant 1')) + geom_col(data=reduced_p2_gen2, aes(x=date, y=ac_power,fill='plant 2')) + scale_fill_manual(values=c("#457b9d","#faa307")) + labs(fill="", title= "AC power (daily)")+ theme(title =element_text(size=9))
+
+# ac power (time)
+pp4 = ggplot(data=reduced_p1_gen2) + geom_point(aes(x=time, y=ac_power, color='plant 1'),size=0.3,alpha=0.6) + geom_point(data=reduced_p2_gen2, aes(x=time, y=ac_power,color='plant 2'), size=0.3,alpha=0.9) + scale_color_manual(values=c("#457b9d","#faa307")) + labs(fill="", title="AC power (time)") + scale_x_datetime(date_label="%H:%M:%S")+ theme(title =element_text(size=9))
+
+
+# daily yield (sum for each date)
+reduced_p1_dyd = reduced_p1_gen2[,lapply(.SD, sum, na.rm=TRUE), by=list(date), .SDcols=c("daily_yield")]
+reduced_p2_dyd = reduced_p2_gen2[,lapply(.SD, sum, na.rm=TRUE), by=list(date), .SDcols=c("daily_yield")]
+pp5 = ggplot(data=reduced_p1_dyd) + geom_col(aes(x=date, y=daily_yield, fill='plant 1')) + geom_col(data=reduced_p2_dyd, aes(x=date, y=daily_yield,fill='plant 2')) + scale_fill_manual(values=c("#457b9d","#faa307")) + labs(fill="", title= "Daily yield (date)")+ theme(title =element_text(size=9))
+
+# average total yield 
+reduced_p1_aty = reduced_p1_gen2[,lapply(.SD, mean, na.rm=TRUE), by=list(date), .SDcols=c("total_yield")]
+reduced_p2_aty = reduced_p2_gen2[,lapply(.SD, mean, na.rm=TRUE), by=list(date), .SDcols=c("total_yield")]
+pp6 = ggplot(data=reduced_p2_aty) + geom_col(aes(x=date, y=total_yield, fill='plant 2')) + geom_col(data=reduced_p1_aty, aes(x=date, y=total_yield,fill='plant 1')) + scale_fill_manual(values=c("#457b9d","#faa307")) + labs(fill="", title= "Average total yield")+ theme(title =element_text(size=9))
+
+ggarrange(pp1, pp2, pp3, pp4, pp5, pp6, labels= c("a","b","c","d","e","f"),ncol=3, nrow=2, common.legend = TRUE, legend = "top")
+```
+
+* Plant 1 and Plant 2 generation
+  + Plant 1 produced around 6 times more dc power than Plant 2.  
+  + Plant 1 produces more ac power than Plant 2.  
+  + Both plants produced similar daily yield (for each date).  
+  + Large difference between Plant 1 and Plant 2 average total yield (for each date). 
+
+
+```{r}
+p1_wx_ir= p1_wx[,time:=as.ITime(date_time)] 
+p1_wx_ir$time = as.POSIXct(strptime(p1_wx_ir$time, format="%H:%M:%S"))
+p2_wx= data2$p2_weather
+p2_wx_ir= p2_wx[,time:=as.ITime(date_time)]
+p2_wx_ir$time = as.POSIXct(strptime(p2_wx_ir$time, format="%H:%M:%S"))
+
+# irradiation
+irp1 = ggplot(data=p1_wx_ir) + geom_point(aes(x=time, y=irradiation, color='plant 1'),size=0.3,alpha=0.6) + geom_point(data=p2_wx_ir, aes(x=time, y=irradiation,color='plant 2'), size=0.3,alpha=0.9) + scale_color_manual(values=c("#457b9d","#faa307")) + labs(fill="", title="Irradiation (time)") + scale_x_datetime(date_label="%H:%M:%S")+ theme(title =element_text(size=9))
+
+# temperature: ambient and module
+temp_p1 = ggplot(data=p1_wx_ir) + geom_point(aes(x=time, y=ambient_temperature, color='Ambient'),size=0.3,alpha=0.7) + geom_point(data=p1_wx_ir, aes(x=time, y=module_temperature,color='Module'), size=0.3,alpha=0.7) + scale_color_manual(values=c("#9c6644","#00509d")) + labs(title="Plant 1",color="Temperature") + scale_x_datetime(date_label="%H:%M:%S")+ theme(title =element_text(size=9))
+temp_p2 =  ggplot(data=p2_wx_ir) + geom_point(aes(x=time, y=ambient_temperature, color='Ambient'),size=0.3,alpha=0.7) + geom_point(data=p2_wx_ir, aes(x=time, y=module_temperature,color='Module'), size=0.3,alpha=0.7) + scale_color_manual(values=c("#9c6644","#00509d")) + labs(title="Plant 2",color="Temperature") + scale_x_datetime(date_label="%H:%M:%S") + theme(title =element_text(size=9))
+
+ggarrange(irp1,                                                 
+          ggarrange(temp_p1, temp_p2, ncol = 2), nrow = 2 
+          ) 
+```
+
+* Plant 1 and Plant 2 sensor
+  + both plants have similar irradiation by time
+  + both plants have similar temperature (ambient and module) by time
+
+```{r}
+# daily yield by source key
+da1 = data$p1_gen
+dap1= ggplot(da1, aes(x=source_key,y=daily_yield)) + geom_boxplot() + coord_flip() + labs(title="Plant 1") + theme(title =element_text(size=9))
+
+da2 = data$p2_gen
+dap2 =ggplot(da2, aes(x=source_key,y=daily_yield)) + geom_boxplot() + coord_flip() + labs(title="Plant 2") + theme(title =element_text(size=9))
+
+dap = ggarrange(dap1,dap2, ncol=2, nrow=1)
+annotate_figure(dap, top = text_grob("Daily yield by source key", size = 12))
+```
+
+* Plant 1 and Plant 2 source keys  
+  + both plants have 22 source keys each.   
+  + There are more differences in the median daily yield (datetime) between source keys in Plant 2 than in Plant 1.  
+
+
+### Plant 2
+#### P2: new variables
+```{r}
+# new variables
+p2$delta_temperature = abs(p2$ambient_temperature-p2$module_temperature)
+p2 = within(p2, diff_daily_yield <- c(NA,diff(daily_yield)))
+p2 = within(p2, diff_total_yield <- c(NA,diff(total_yield)))
+p2 = within(p2, diff_ambient_temperature <- c(NA,diff(ambient_temperature)))
+p2 = within(p2, diff_module_temperature <- c(NA,diff(module_temperature)))
+p2 = within(p2, diff_ac_power <- c(NA,diff(ac_power)))
+head(p2)
+```
+
+
+#### P2: spearman correlation
+```{r, warning=FALSE}
+# get spearman correlation
+p2c = p2[,-c(1,9,10)]
+corr_mat=cor(p2c, use="complete.obs", method="spearman") #create Spearman correlation matrix
+
+# p.mat function
+cor.mtest <- function(mat, ...) {
+    mat <- as.matrix(mat)
+    n <- ncol(mat)
+    p.mat<- matrix(NA, n, n)
+    diag(p.mat) <- 0
+    for (i in 1:(n - 1)) {
+        for (j in (i + 1):n) {
+            tmp <- cor.test(mat[, i], mat[, j], ...)
+            p.mat[i, j] <- p.mat[j, i] <- tmp$p.value
+        }
+    }
+  colnames(p.mat) <- rownames(p.mat) <- colnames(mat)
+  p.mat
+}
+# get p.mat
+p.mat <- cor.mtest(p2c, method="s",use="complete.obs")
+
+col <- colorRampPalette(c("#BB4444", "#EE9988", "#FFFFFF", "#77AADD", "#4477AA"))
+
+cor.mtest <- function(mat, ...) {
+    mat <- as.matrix(mat)
+    n <- ncol(mat)
+    p.mat<- matrix(NA, n, n)
+    diag(p.mat) <- 0
+    for (i in 1:(n - 1)) {
+        for (j in (i + 1):n) {
+            tmp <- cor.test(mat[, i], mat[, j], ...)
+            p.mat[i, j] <- p.mat[j, i] <- tmp$p.value
+        }
+    }
+  colnames(p.mat) <- rownames(p.mat) <- colnames(mat)
+  p.mat
+}
+```
+
+```{r}
+# plot
+corrplot(corr_mat, method="color", col=col(200),  
+         type="upper", order="hclust", 
+         addCoef.col = "black", # Add coefficient of correlation
+         tl.col="black", tl.srt=90, #Text label color and rotation
+         # Combine with significance
+         p.mat = p.mat, sig.level = 0.01, insig = "blank", 
+         # hide correlation coefficient on the principal diagonal
+         diag=FALSE, number.cex=.6, tl.cex=.6
+         )
+```
+
+* Plant 2's total yield is negatively correlated to all features, except for daily yield. 
+
+#### P2: reg plots
+```{r, warning=FALSE, message=FALSE, fig.height=3.5, fig.width=5}
+# reg plots
+p2a = ggscatter(p2, x="dc_power",y="ac_power", add="reg.line", color="#8F3931FF",alpha=0.6, size=1) + theme_bw()
+p2b = ggscatter(p2, x="ac_power",y="diff_daily_yield", add="reg.line", color="#767676FF",alpha=0.6,size=1) + theme_bw()
+p2c = ggscatter(p2, x="irradiation",y="diff_daily_yield", add="reg.line", color="#FFA319FF",alpha=0.6, size=1) + theme_bw()
+p2d = ggscatter(p2, x="module_temperature",y="diff_daily_yield", add="reg.line", color="#58593FFF",alpha=0.6, size=1) + theme_bw()
+p2e =ggscatter(p2, x="delta_temperature",y="diff_daily_yield", add="reg.line", color="#155F83FF",alpha=0.6, size=1) + theme_bw()
+p2f = ggscatter(p2, x="diff_daily_yield",y="diff_total_yield", add="reg.line", color="#C16622FF",alpha=0.6, size=1) + theme_bw()
+p2g = ggscatter(p2, x="diff_module_temperature",y="diff_ac_power", add="reg.line", color="#350E20FF",alpha=0.6, size=1) + theme_bw() + labs(x="diff_module_temp")
+
+ggarrange(p2a, p2b, p2c, p2d, p2e, p2f, p2g, labels= c("a","b","c","d","e","f","g"),ncol=3, nrow=3)
+
+```
+
+* Plant 2 reg plots
+  + inverter lost 0% of the power as dc power = ac power.  
+  + diff_daily_yield (next minus previous) is:   
+    + positive when ac power > 20,000 KW.  
+    + positive or negative with the variation of irradiation     
+    + negative when the module temperature is below 30°C, and PV panel product the energy if temperature is around 35°C.   
+    + negative when delta temperature is < 5°C, daily yield decreases every 15 minutes if the difference in module and ambient temperature is < 5°C.   
+  + there is more diff_ac_power when the diff_module_temp is between -5°C and 5°C.   
+  
+* Summary
+  + Plant 1 produces 6 times more DC power than plant 2 and loses 90% of it when converting to AC power.
+  + No losses in Plant 2 when converting DC to AC power.  
+  + AC power output and daily yield are similar for both plants.  
+  + There is a large difference between Plant 1 and Plant 2 average total yield; Plant 2 average total yield is higher than Plant 1.  
+  + Daily yield decreases when the delta temperature is < 5°C
+  
