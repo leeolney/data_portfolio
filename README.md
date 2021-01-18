@@ -51,7 +51,10 @@ This is a repository containing my data analytics projects for academic and self
     * [Extinct Plants Notebook](https://rpubs.com/leeolney/extinct_plants): exploring extinct plants threat types and action taken by continent and year last seen.  
     * [Washington Trails Notebook](https://rpubs.com/leeolney/washington_trails): looking at dog friendly trails, ratings, trips, and trail features.
     * [The Big Mac index (.R)](https://github.com/leeolney/data_portfolio/blob/main/R_visualization/the_big_mac_index.R): TidyTuesday 2020 week 52 submission, looking at the difference between adjusted price and local price in dollars across countries.
-    * [Transit Project Costs Notebook](https://rpubs.com/leeolney/transitprojects): TidyTuesday 2021 week 2 data visualization exercise and submission, looking into the transit projects differences in cost/km, cost/station and length between stations. 
+    * [Transit Project Costs Notebook](https://rpubs.com/leeolney/transitprojects): TidyTuesday 2021 week 02 data visualization exercise and submission - transit projects differences in cost/km, cost/station and length between stations. 
+    * [Data Science Survey Data Notebook](https://rpubs.com/leeolney/datasciencesurvey): exploratory analysis to understand the tools, preferred language and commonly used algorithms of data science practitioners in various working fields. 
+    * [Solar Power Plants Notebook](https://rpubs.com/leeolney/solarpowerplants): using various visualisation techniques to explore power generation and sensor readings of two solar power plants.
+
     
    * **Tableau**
       * [Middle East rig activities](https://public.tableau.com/profile/lee.olney#!/vizhome/MERigActivities/Dashboard1) for oilfield services regional business development and operations focusing on contracts.
@@ -69,10 +72,11 @@ This is a repository containing my data analytics projects for academic and self
   * [Hyperparameters tuning exercise(Jupyter Notebook)](https://github.com/leeolney/data_portfolio/blob/main/other_projects/m3_strategy_games_p.ipynb): applying decision tree and random forest with hyperparameters tuning using grid search and random search methods.  
   * [Expeditions (.Rmd)](https://github.com/leeolney/data_portfolio/blob/main/other_projects/expeditions.Rmd): visualizations and predicting success of expeditions using tidymodels package.
   * [Wind Turbines (R Notebook)](https://rpubs.com/leeolney/windturbines): visualizations and predicting turbines capacity using tidymodels package.
-  * [Data Science Survey Data (R Notebook)](https://rpubs.com/leeolney/datasciencesurvey): exploratory analysis to understand the tools, preferred language and commonly used algorithms of data science practitioners in various working fields. 
+  * [Job changes (Google Collab .ipynb)](https://github.com/leeolney/data_portfolio/blob/main/job_changes.ipynb): exploratory analysis and predicting which candidates will move on to a new job. 
+  * [Women entrepreneurship](https://github.com/leeolney/data_portfolio/tree/main/other_projects/women_entrepreneurship): data visualization and non-parameteric testing in Python [(Google Collab .ipynb)](https://github.com/leeolney/data_portfolio/blob/main/other_projects/women_entrepreneurship/women_entre_Python.ipynb) and R [(.rmd)](https://github.com/leeolney/data_portfolio/blob/main/other_projects/women_entrepreneurship/women_entre_R.Rmd). 
+  * [Art Collections (R Notebook)](https://rpubs.com/leeolney/artcollections): TidyTuesday 2021 week 03 data visualization and modeling exercise - exploring film/video mediums, digital mediums, and ratio of artworks to artists across the years; regularised linear regression with text features. 
   * [Marketing Data Analysis (R Notebook)](https://rpubs.com/leeolney/marketingdatav2): exploratory and statistical analysis looking at customers, products, campaigns and channels.  
-  * [Job changes (.ipynb, Google Collab)](https://github.com/leeolney/data_portfolio/blob/main/job_changes.ipynb): exploratory analysis and predicting which candidates will move on to a new job. 
-  * [Women entrepreneurship (.ipynb, Google Collab)](https://github.com/leeolney/data_portfolio/blob/main/women_entrepreneurship.ipynb): data visualizations and non-parameteric testing. 
+
   
   
 Contact information: 
